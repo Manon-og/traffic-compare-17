@@ -35,7 +35,7 @@ The dashboard expects CSV files with these **required columns** (case-sensitive)
 | Column | Type | Description |
 |--------|------|-------------|
 | `run_id` | string | e.g., "baseline_01", "rl_01" |
-| `intersection_id` | string | e.g., "Int1", "Int2", "Int3" |
+| `intersection_id` | string | e.g., "Ecoland", "Sandawa", "John Paul" |
 | `cycle_id` | integer | Cycle number |
 | `start_time` | string | HH:MM:SS or ISO timestamp |
 | `lane_id` | string | Lane or movement identifier |
@@ -72,11 +72,11 @@ The dashboard expects CSV files with these **required columns** (case-sensitive)
 ## Example CSV Format
 
 ```csv
-run_id,intersection_id,cycle_id,start_time,lane_id,total_count,total_pcu,occupancy,total_queue,throughput_pcu,reward
-baseline_01,Int1,1,08:00:00,Lane_N,18,14.4,0.72,9,216,
-baseline_01,Int1,1,08:00:00,Lane_S,15,12.0,0.65,7,216,
-rl_01,Int1,1,08:00:00,Lane_N,16,12.8,0.58,5,234,0.84
-rl_01,Int1,1,08:00:00,Lane_S,14,11.2,0.52,4,234,0.84
+run_id,intersection_id,cycle_id,start_time,lane_id,total_count,total_pcu,occupancy,total_queue,throughput_pcu,passenger_throughput,jeepney_throughput
+Fixed Time,Ecoland,1,08:00:00,Lane_N,18,14.4,0.72,9,216,145,10
+Fixed Time,Ecoland,1,08:00:00,Lane_S,15,12.0,0.65,7,216,145,10
+D3QN Single Agent,Ecoland,1,08:00:00,Lane_N,16,12.8,0.58,5,234,175,14
+D3QN Multi Agent,Sandawa,1,08:00:00,Lane_S,14,11.2,0.52,4,255,205,18
 ```
 
 ## Technical Architecture

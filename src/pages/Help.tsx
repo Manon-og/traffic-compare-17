@@ -1,7 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
-import { HelpCircle, BarChart3, Settings, Download } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { HelpCircle, BarChart3, Settings, Download } from "lucide-react";
 
 const Help = () => {
   return (
@@ -9,7 +14,10 @@ const Help = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Help & Documentation</h1>
-          <p className="text-muted-foreground">Learn how to use the dashboard and understand the traffic data</p>
+          <p className="text-muted-foreground">
+            Learn how to use the D3QN traffic analysis dashboard and understand
+            passenger-centric metrics
+          </p>
         </div>
 
         <div className="grid gap-6">
@@ -24,17 +32,22 @@ const Help = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    Queue Length Chart
+                    Passenger Throughput Chart
                     <Badge variant="outline">Primary Metric</Badge>
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Shows the number of vehicles waiting at red lights over time. Lower values indicate better traffic flow.
+                    Shows passengers served per traffic cycle. Higher values
+                    indicate better passenger-centric optimization. Multi-agent
+                    D3QN typically achieves 190-230 passengers/cycle vs 120-150
+                    for fixed-time control.
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Lane Breakdown</h4>
+                  <h4 className="font-semibold mb-2">Jeepney Lane Analysis</h4>
                   <p className="text-sm text-muted-foreground">
-                    Displays performance metrics for individual lanes at selected cycles for detailed analysis.
+                    Displays jeepney throughput and TSP (Traffic Signal
+                    Priority) activation rates for public transport
+                    optimization.
                   </p>
                 </div>
               </div>
@@ -55,7 +68,9 @@ const Help = () => {
                   <div>
                     <p className="font-medium">Control Systems</p>
                     <p className="text-sm text-muted-foreground">
-                      Select one or more control systems to compare. Choose "Fixed Time" for traditional systems or "RL" for reinforcement learning.
+                      Compare two control methods: "Fixed Time" (traditional
+                      baseline) and "D3QN Multi Agent" (advanced reinforcement
+                      learning with multi-intersection coordination).
                     </p>
                   </div>
                 </div>
@@ -64,7 +79,9 @@ const Help = () => {
                   <div>
                     <p className="font-medium">Intersections</p>
                     <p className="text-sm text-muted-foreground">
-                      Filter by specific intersection IDs or view all intersections together for aggregate analysis.
+                      Filter by specific intersection locations (Ecoland,
+                      Sandawa, John Paul) or view all intersections together for
+                      aggregate analysis.
                     </p>
                   </div>
                 </div>
@@ -73,7 +90,8 @@ const Help = () => {
                   <div>
                     <p className="font-medium">Cycle Range</p>
                     <p className="text-sm text-muted-foreground">
-                      Adjust the time period by selecting specific traffic cycles. Each cycle represents one complete signal phase.
+                      Adjust the time period by selecting specific traffic
+                      cycles. Each cycle represents one complete signal phase.
                     </p>
                   </div>
                 </div>
@@ -91,44 +109,79 @@ const Help = () => {
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1">
-                  <AccordionTrigger>What is reinforcement learning in traffic control?</AccordionTrigger>
+                  <AccordionTrigger>
+                    What is D3QN (Dueling Double Deep Q-Network)?
+                  </AccordionTrigger>
                   <AccordionContent>
-                    Reinforcement learning (RL) is an AI technique that learns optimal traffic signal timing by trial and error. 
-                    The algorithm observes traffic conditions and adjusts signal phases to minimize congestion and improve flow, 
-                    adapting to changing traffic patterns in real-time.
+                    D3QN is an advanced reinforcement learning algorithm that
+                    combines value function decomposition with double Q-learning
+                    for stable traffic control. It uses passenger-centric reward
+                    functions to optimize signal timing for maximum passenger
+                    throughput and reduced waiting times, especially for public
+                    transport.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
-                  <AccordionTrigger>How do I interpret KPI values?</AccordionTrigger>
+                  <AccordionTrigger>
+                    How do I interpret passenger-centric KPIs?
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="space-y-2 text-sm">
-                      <li><strong>Queue Length:</strong> Lower is better - fewer vehicles waiting at lights</li>
-                      <li><strong>Throughput:</strong> Higher is better - more vehicles processed per hour</li>
-                      <li><strong>Occupancy:</strong> 0.3-0.7 is optimal - indicates efficient lane utilization</li>
-                      <li><strong>RL Reward:</strong> Higher is better - shows algorithm performance</li>
+                      <li>
+                        <strong>Passenger Throughput:</strong> Higher is better
+                        - more passengers served per cycle
+                      </li>
+                      <li>
+                        <strong>Jeepney Throughput:</strong> Higher indicates
+                        better public transport efficiency
+                      </li>
+                      <li>
+                        <strong>TSP Activations:</strong> Shows frequency of
+                        traffic signal priority for jeepneys
+                      </li>
+                      <li>
+                        <strong>Coordination Score:</strong> Higher values
+                        indicate better multi-agent cooperation
+                      </li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-3">
-                  <AccordionTrigger>What does PCU mean?</AccordionTrigger>
+                  <AccordionTrigger>
+                    What is TSP (Traffic Signal Priority)?
+                  </AccordionTrigger>
                   <AccordionContent>
-                    PCU stands for Passenger Car Unit, a standard measure that converts different vehicle types 
-                    (cars, trucks, buses) into equivalent passenger cars for consistent traffic analysis. 
-                    For example, a truck might count as 2.5 PCUs.
+                    TSP is a system that gives priority to specific vehicles
+                    (like jeepneys) by extending green lights or shortening red
+                    lights when they approach intersections. Our D3QN algorithm
+                    uses YOLO-based jeepney detection to intelligently activate
+                    TSP for optimal public transport flow.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-4">
-                  <AccordionTrigger>Why do some cycles show incomplete data?</AccordionTrigger>
+                  <AccordionTrigger>
+                    What's the difference between Single Agent and Multi Agent
+                    D3QN?
+                  </AccordionTrigger>
                   <AccordionContent>
-                    Incomplete data can occur due to sensor malfunctions, communication issues, or system maintenance. 
-                    Use the "Hide Incomplete" filter to exclude these data points from your analysis for more accurate results.
+                    Single Agent D3QN controls each intersection independently,
+                    while Multi Agent D3QN enables coordination between multiple
+                    intersections for network-wide optimization. Multi Agent
+                    typically achieves better passenger throughput through
+                    coordinated signal timing and enhanced traffic flow
+                    management.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-5">
-                  <AccordionTrigger>How can I export data for my own analysis?</AccordionTrigger>
+                  <AccordionTrigger>
+                    How can I export training data for research?
+                  </AccordionTrigger>
                   <AccordionContent>
-                    Click the "Export CSV" button in the filters panel to download the currently filtered dataset. 
-                    You can also visit the Reports page for additional export options including PDF summaries and Excel formats.
+                    Visit the Training Output section to access experiment data,
+                    model checkpoints, and performance metrics. Use the export
+                    functionality to download training episodes, reward curves,
+                    and comparative analysis data for further research and
+                    publication purposes.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -137,7 +190,7 @@ const Help = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Help
+export default Help;

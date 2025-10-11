@@ -1,12 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { Download } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { Download } from "lucide-react";
 
 interface TrafficFiltersProps {
   availableRuns: string[];
@@ -37,14 +43,13 @@ export const TrafficFilters = ({
   hideIncomplete,
   onHideIncompleteChange,
   onDownloadCSV,
-  dataCount
+  dataCount,
 }: TrafficFiltersProps) => {
-
   const handleRunToggle = (runId: string, checked: boolean) => {
     if (checked) {
       onRunsChange([...selectedRuns, runId]);
     } else {
-      onRunsChange(selectedRuns.filter(id => id !== runId));
+      onRunsChange(selectedRuns.filter((id) => id !== runId));
     }
   };
 
@@ -60,7 +65,6 @@ export const TrafficFilters = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-
         {/* Run Selection */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -70,18 +74,21 @@ export const TrafficFilters = ({
             <InfoTooltip content="Select which traffic control systems to compare. Fixed-time uses pre-programmed signal timing, while RL uses adaptive algorithms." />
           </div>
           <div className="space-y-2">
-            {availableRuns.map(runId => (
+            {availableRuns.map((runId) => (
               <div key={runId} className="flex items-center space-x-2">
                 <Checkbox
                   id={runId}
                   checked={selectedRuns.includes(runId)}
-                  onCheckedChange={(checked) => handleRunToggle(runId, !!checked)}
+                  onCheckedChange={(checked) =>
+                    handleRunToggle(runId, !!checked)
+                  }
                 />
-                <Label 
-                  htmlFor={runId} 
+                <Label
+                  htmlFor={runId}
                   className="text-sm font-normal cursor-pointer"
                 >
-                  {runId.includes('fixed_time') ? '🚦 Fixed Time' : '🤖 RL Algorithm'} ({runId})
+                  {runId.includes("fixed_time") ? "🚦 Fixed Time" : " "}
+                  {runId}
                 </Label>
               </div>
             ))}
@@ -94,13 +101,16 @@ export const TrafficFilters = ({
             <Label className="text-sm font-medium">Intersection</Label>
             <InfoTooltip content="Focus analysis on a specific intersection or view aggregated data from all intersections." />
           </div>
-          <Select value={selectedIntersection} onValueChange={onIntersectionChange}>
+          <Select
+            value={selectedIntersection}
+            onValueChange={onIntersectionChange}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Intersections</SelectItem>
-              {availableIntersections.map(intId => (
+              {availableIntersections.map((intId) => (
                 <SelectItem key={intId} value={intId}>
                   {intId}
                 </SelectItem>
@@ -119,7 +129,9 @@ export const TrafficFilters = ({
           </div>
           <Slider
             value={cycleRange}
-            onValueChange={(value) => onCycleRangeChange(value as [number, number])}
+            onValueChange={(value) =>
+              onCycleRangeChange(value as [number, number])
+            }
             max={maxCycles}
             min={1}
             step={1}
@@ -128,7 +140,7 @@ export const TrafficFilters = ({
         </div>
 
         {/* Options */}
-        <div className="space-y-3">
+        {/* <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Switch
               id="hide-incomplete"
@@ -140,11 +152,11 @@ export const TrafficFilters = ({
             </Label>
             <InfoTooltip content="Exclude rows with missing occupancy or vehicle count data from analysis." />
           </div>
-        </div>
+        </div> */}
 
         {/* Export */}
         <div className="space-y-2">
-          <Button 
+          <Button
             onClick={onDownloadCSV}
             variant="outline"
             size="sm"

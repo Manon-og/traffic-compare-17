@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Target, Users, Lightbulb, TrendingUp } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Target, Users, Lightbulb, TrendingUp } from "lucide-react";
 
 const About = () => {
   return (
@@ -8,7 +8,10 @@ const About = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">About This Project</h1>
-          <p className="text-muted-foreground">Understanding the purpose and methodology behind our traffic analysis system</p>
+          <p className="text-muted-foreground">
+            Understanding the purpose and methodology behind our traffic
+            analysis system
+          </p>
         </div>
 
         <div className="grid gap-6">
@@ -21,15 +24,22 @@ const About = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                This traffic analysis dashboard compares the performance of traditional fixed-time traffic control systems 
-                with modern reinforcement learning (RL) algorithms. Our goal is to demonstrate how AI-driven traffic 
-                management can improve urban mobility and reduce congestion.
+                This traffic analysis dashboard compares the performance of
+                traditional fixed-time traffic control systems with modern D3QN
+                (Dueling Double Deep Q-Network) reinforcement learning
+                algorithms. Our focus is on passenger-centric optimization,
+                demonstrating how AI-driven traffic management can improve urban
+                mobility, reduce passenger waiting times, and enhance public
+                transport efficiency.
               </p>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Traffic Optimization</Badge>
-                <Badge variant="secondary">Reinforcement Learning</Badge>
+                <Badge variant="secondary">D3QN Reinforcement Learning</Badge>
+                <Badge variant="secondary">
+                  Passenger-Centric Optimization
+                </Badge>
+                <Badge variant="secondary">Public Transport Priority</Badge>
+                <Badge variant="secondary">Multi-Agent Systems</Badge>
                 <Badge variant="secondary">Urban Mobility</Badge>
-                <Badge variant="secondary">Data Analysis</Badge>
               </div>
             </CardContent>
           </Card>
@@ -46,19 +56,19 @@ const About = () => {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Real-time performance comparison between control systems
+                    Passenger throughput optimization with D3QN algorithms
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Interactive data visualization and filtering
+                    Multi-agent vs single-agent system comparison
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Comprehensive KPI tracking and analysis
+                    Jeepney-specific traffic signal prioritization (TSP)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Export capabilities for further research
+                    Coordination scoring and performance tracking
                   </li>
                 </ul>
               </CardContent>
@@ -75,19 +85,21 @@ const About = () => {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
-                    Reduced average queue lengths at intersections
+                    ≥10% reduction in passenger waiting times vs fixed-time
+                    control
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
-                    Improved traffic throughput and flow efficiency
+                    Increased passenger throughput per cycle (190-230 vs
+                    120-150)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
-                    Better adaptation to varying traffic patterns
+                    Enhanced jeepney priority through intelligent TSP activation
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
-                    Data-driven insights for traffic management
+                    Multi-agent coordination for network-wide optimization
                   </li>
                 </ul>
               </CardContent>
@@ -103,35 +115,51 @@ const About = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                This project combines expertise in traffic engineering, machine learning, and urban planning to 
-                develop and evaluate next-generation traffic control systems. Our methodology includes:
+                This research focuses on developing a Double-Dueling DQN
+                algorithm with passenger-centric reward functions, integrating
+                YOLO-based vehicle classification for jeepneys, and
+                demonstrating superior performance over traditional control
+                systems. Our methodology includes:
               </p>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Data Collection</h4>
+                  <h4 className="font-semibold mb-2">SUMO Simulation</h4>
                   <p className="text-sm text-muted-foreground">
-                    Real-world traffic measurements from urban intersections
+                    High-fidelity traffic simulation with passenger-focused
+                    metrics
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Algorithm Development</h4>
+                  <h4 className="font-semibold mb-2">D3QN Development</h4>
                   <p className="text-sm text-muted-foreground">
-                    Advanced RL models trained on traffic optimization
+                    Dueling Double DQN with passenger-centric reward functions
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Performance Analysis</h4>
+                  <h4 className="font-semibold mb-2">YOLO Integration</h4>
                   <p className="text-sm text-muted-foreground">
-                    Comprehensive comparison with traditional systems
+                    Jeepney detection for intelligent signal prioritization
                   </p>
                 </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                <h4 className="font-semibold mb-2">Research Locations</h4>
+                <p className="text-sm text-muted-foreground">
+                  Our study focuses on three key intersections in the urban
+                  traffic network: Ecoland (high-traffic commercial area),
+                  Sandawa (moderate residential-commercial), and John Paul
+                  (lower-traffic residential area). Each location presents
+                  unique traffic patterns and challenges for our D3QN algorithms
+                  to optimize.
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default About
+export default About;

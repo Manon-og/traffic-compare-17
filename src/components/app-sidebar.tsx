@@ -1,5 +1,5 @@
-import { BarChart3, FileText, Info, HelpCircle, BookOpen } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { BarChart3, FileText, Info, HelpCircle, BookOpen } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
 
 import {
   Sidebar,
@@ -11,67 +11,65 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const items = [
-  { 
-    title: "Dashboard", 
-    url: "/", 
+  {
+    title: "Dashboard",
+    url: "/",
     icon: BarChart3,
-    description: "Performance comparison"
+    description: "Performance comparison",
   },
-  { 
-    title: "Reports", 
-    url: "/reports", 
-    icon: FileText,
-    description: "Export PDF/CSV, summaries"
-  },
-  { 
-    title: "About", 
-    url: "/about", 
+  // {
+  //   title: "Reports",
+  //   url: "/reports",
+  //   icon: FileText,
+  //   description: "Export PDF/CSV, summaries",
+  // },
+  {
+    title: "About",
+    url: "/about",
     icon: Info,
-    description: "Project description & purpose"
+    description: "Project description & purpose",
   },
-  { 
-    title: "Help", 
-    url: "/help", 
+  {
+    title: "Help",
+    url: "/help",
     icon: HelpCircle,
-    description: "How to read charts, FAQs"
+    description: "How to read charts, FAQs",
   },
-  { 
-    title: "References", 
-    url: "/references", 
+  {
+    title: "References",
+    url: "/references",
     icon: BookOpen,
-    description: "Sources, related works"
+    description: "Sources, related works",
   },
-]
+];
 
 export function AppSidebar() {
-  const { open } = useSidebar()
-  const location = useLocation()
-  const currentPath = location.pathname
+  const { open } = useSidebar();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-  const isActive = (path: string) => currentPath === path
+  const isActive = (path: string) => currentPath === path;
 
   return (
     <Sidebar className={open ? "w-64" : "w-16"} collapsible="icon">
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Navigation
-          </SidebarGroupLabel>
+        <SidebarGroup className="pt-5">
+          <SidebarGroupLabel className="px-10 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"></SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-5">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
+                    <NavLink
+                      to={item.url}
+                      end
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          isActive 
-                            ? "bg-sidebar-accent text-sidebar-primary font-semibold" 
+                          isActive
+                            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
                             : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                         }`
                       }
@@ -94,5 +92,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

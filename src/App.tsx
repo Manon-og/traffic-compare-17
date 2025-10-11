@@ -24,15 +24,20 @@ const App = () => (
           <div className="min-h-screen flex w-full">
             <AppSidebar />
             <main className="flex-1">
-              <header className="h-14 flex items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-                <SidebarTrigger className="ml-4" />
-                <div className="flex-1 px-4">
-                  <h2 className="text-lg font-semibold">Traffic Analysis Dashboard</h2>
+              <header className="sticky top-0 z-50 border-b bg-background">
+                <div className="flex h-12 items-center gap-3 px-4">
+                  <SidebarTrigger />
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <span>Traffic Analytics</span>
+                    <span className="text-muted-foreground">
+                      RL vs Fixed-Time
+                    </span>
+                  </div>
                 </div>
               </header>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/reports" element={<Reports />} />
+                {/* <Route path="/reports" element={<Reports />} /> */}
                 <Route path="/about" element={<About />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/references" element={<References />} />
