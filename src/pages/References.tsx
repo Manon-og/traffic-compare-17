@@ -176,7 +176,8 @@ const References = () => {
                     <ul className="space-y-1 text-sm text-muted-foreground">
                       <li>• Peak hour passenger throughput: 190-230/cycle</li>
                       <li>
-                        • Jeepney frequency: 16-21/cycle (optimal conditions)
+                        • Public vehicle frequency: 16-21/cycle (optimal
+                        conditions)
                       </li>
                       <li>
                         • TSP activation rates: 4-8/cycle (D3QN Multi Agent)

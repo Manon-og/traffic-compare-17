@@ -1,4 +1,11 @@
-import { BarChart3, FileText, Info, HelpCircle, BookOpen } from "lucide-react";
+import {
+  BarChart3,
+  FileText,
+  Info,
+  HelpCircle,
+  BookOpen,
+  Activity,
+} from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import {
@@ -19,6 +26,12 @@ const items = [
     url: "/",
     icon: BarChart3,
     description: "Performance comparison",
+  },
+  {
+    title: "Training",
+    url: "/training",
+    icon: Activity,
+    description: "D3QN training progress",
   },
   // {
   //   title: "Reports",

@@ -115,8 +115,6 @@ export const TrafficChart = ({
                 formatter={(value: number, name: string) => {
                   let displayName = "RL Algorithm";
                   if (name.includes("Fixed Time")) displayName = "Fixed Time";
-                  else if (name.includes("D3QN Single"))
-                    displayName = "D3QN Single Agent";
                   else if (name.includes("D3QN Multi"))
                     displayName = "D3QN Multi Agent";
                   return [value.toFixed(1), displayName];
@@ -209,13 +207,11 @@ export const TrafficChart = ({
               />
               <Tooltip
                 formatter={(value: number, name: string) => {
-                  let displayName = "Jeepneys";
+                  let displayName = "Public Vehicles";
                   if (name.includes("Fixed Time"))
-                    displayName = "Fixed Time Jeepneys";
-                  else if (name.includes("D3QN Single"))
-                    displayName = "D3QN Single Jeepneys";
+                    displayName = "Fixed Time Public Vehicles";
                   else if (name.includes("D3QN Multi"))
-                    displayName = "D3QN Multi Jeepneys";
+                    displayName = "D3QN Multi Public Vehicles";
                   return [value.toFixed(1), displayName];
                 }}
               />
@@ -242,8 +238,6 @@ export const TrafficChart = ({
 
                     const getBarName = (runId: string) => {
                       if (runId.includes("Fixed Time")) return "Fixed Time";
-                      if (runId.includes("D3QN Single"))
-                        return "D3QN Single Agent";
                       if (runId.includes("D3QN Multi"))
                         return "D3QN Multi Agent";
                       return runId; // fallback to the original name

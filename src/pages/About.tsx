@@ -60,15 +60,15 @@ const About = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Multi-agent vs single-agent system comparison
+                    D3QN Multi-Agent vs Fixed-Time system comparison
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Jeepney-specific traffic signal prioritization (TSP)
+                    Public vehicle-specific traffic signal prioritization (TSP)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Coordination scoring and performance tracking
+                    Multi-agent coordination and performance tracking
                   </li>
                 </ul>
               </CardContent>
@@ -95,7 +95,8 @@ const About = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
-                    Enhanced jeepney priority through intelligent TSP activation
+                    Enhanced public vehicle priority through intelligent TSP
+                    activation
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-success">✓</span>
@@ -117,7 +118,7 @@ const About = () => {
               <p className="text-muted-foreground">
                 This research focuses on developing a Double-Dueling DQN
                 algorithm with passenger-centric reward functions, integrating
-                YOLO-based vehicle classification for jeepneys, and
+                YOLO-based vehicle classification for public vehicles, and
                 demonstrating superior performance over traditional control
                 systems. Our methodology includes:
               </p>
@@ -138,7 +139,8 @@ const About = () => {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-2">YOLO Integration</h4>
                   <p className="text-sm text-muted-foreground">
-                    Jeepney detection for intelligent signal prioritization
+                    Public vehicle detection for intelligent signal
+                    prioritization
                   </p>
                 </div>
               </div>

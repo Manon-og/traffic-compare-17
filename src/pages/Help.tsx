@@ -43,9 +43,11 @@ const Help = () => {
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Jeepney Lane Analysis</h4>
+                  <h4 className="font-semibold mb-2">
+                    Public Vehicle Lane Analysis
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    Displays jeepney throughput and TSP (Traffic Signal
+                    Displays public vehicle throughput and TSP (Traffic Signal
                     Priority) activation rates for public transport
                     optimization.
                   </p>
@@ -132,12 +134,12 @@ const Help = () => {
                         - more passengers served per cycle
                       </li>
                       <li>
-                        <strong>Jeepney Throughput:</strong> Higher indicates
-                        better public transport efficiency
+                        <strong>Public Vehicle Throughput:</strong> Higher
+                        indicates better public transport efficiency
                       </li>
                       <li>
                         <strong>TSP Activations:</strong> Shows frequency of
-                        traffic signal priority for jeepneys
+                        traffic signal priority for public vehicles
                       </li>
                       <li>
                         <strong>Coordination Score:</strong> Higher values
@@ -152,24 +154,27 @@ const Help = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     TSP is a system that gives priority to specific vehicles
-                    (like jeepneys) by extending green lights or shortening red
-                    lights when they approach intersections. Our D3QN algorithm
-                    uses YOLO-based jeepney detection to intelligently activate
-                    TSP for optimal public transport flow.
+                    (like public vehicles) by extending green lights or
+                    shortening red lights when they approach intersections. Our
+                    D3QN algorithm uses YOLO-based public vehicle detection to
+                    intelligently activate TSP for optimal public transport
+                    flow.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-4">
                   <AccordionTrigger>
-                    What's the difference between Single Agent and Multi Agent
-                    D3QN?
+                    What's the difference between Fixed Time and D3QN Multi
+                    Agent?
                   </AccordionTrigger>
                   <AccordionContent>
-                    Single Agent D3QN controls each intersection independently,
-                    while Multi Agent D3QN enables coordination between multiple
-                    intersections for network-wide optimization. Multi Agent
-                    typically achieves better passenger throughput through
-                    coordinated signal timing and enhanced traffic flow
-                    management.
+                    Fixed Time uses traditional pre-programmed signal timing
+                    cycles that don't adapt to traffic conditions, while D3QN
+                    Multi Agent uses reinforcement learning to dynamically
+                    optimize signal timing based on current traffic state. Multi
+                    Agent D3QN enables coordination between multiple
+                    intersections for network-wide optimization, typically
+                    achieving better passenger throughput through intelligent
+                    signal timing and enhanced traffic flow management.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-5">

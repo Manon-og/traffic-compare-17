@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Index from "./pages/Index";
+import Training from "./pages/Training";
 import Reports from "./pages/Reports";
 import About from "./pages/About";
 import Help from "./pages/Help";
@@ -37,6 +38,7 @@ const App = () => (
               </header>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/training" element={<Training />} />
                 {/* <Route path="/reports" element={<Reports />} /> */}
                 <Route path="/about" element={<About />} />
                 <Route path="/help" element={<Help />} />
