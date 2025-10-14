@@ -20,6 +20,8 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Car, TrendingDown, Activity, Trophy, Eye, EyeOff } from "lucide-react";
 import { TrainingOutput } from "@/components/traffic/TrainingOutput";
+import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
+import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
 
 const Index = () => {
   const [data, setData] = useState<TrafficData[]>([]);
@@ -31,6 +33,26 @@ const Index = () => {
   const [selectedCycle, setSelectedCycle] = useState<number | undefined>();
   const [showDataTable, setShowDataTable] = useState(false);
   const { toast } = useToast();
+
+  const {
+    experiment,
+    episodes,
+    validations,
+    baseline,
+    objectives,
+    laneMetrics,
+  } = dummyTrainingDataset;
+
+  const recentEpisodes = episodes.slice(-20);
+  const avgPassengerThroughput =
+    recentEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
+    recentEpisodes.length;
+  const avgWaitingTime =
+    recentEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
+    recentEpisodes.length;
+  const avgJeepneys =
+    recentEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
+    recentEpisodes.length;
 
   // Load sample data on mount
   useEffect(() => {
@@ -275,9 +297,9 @@ const Index = () => {
             />
 
             {/* KPI Cards */}
-            {filteredData.length > 0 && (
+            {/* {filteredData.length > 0 && (
               <div className="space-y-4">{renderKPIs()}</div>
-            )}
+            )} */}
           </div>
 
           {/* Main Content */}
@@ -293,10 +315,37 @@ const Index = () => {
               />
             )}
 
-            <TrainingOutput.DataAnalysis />
+            {/* Baseline Comparisons */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">
+                Baseline Comparison: D3QN vs Fixed Time
+              </h2>
+              <div className="grid gap-6 md:grid-cols-2">
+                <BaselineComparisonChart
+                  baselines={baseline}
+                  d3qnValue={avgPassengerThroughput}
+                  metric="avg_passenger_throughput"
+                  title="Passenger Throughput Comparison"
+                />
+                <BaselineComparisonChart
+                  baselines={baseline}
+                  d3qnValue={avgWaitingTime}
+                  metric="avg_waiting_time"
+                  title="Waiting Time Comparison"
+                />
+              </div>
+              <BaselineComparisonChart
+                baselines={baseline}
+                d3qnValue={avgJeepneys}
+                metric="jeepneys_processed"
+                title="Public Vehicle Throughput Comparison"
+              />
+            </div>
+
+            {/* <TrainingOutput.DataAnalysis /> */}
 
             {/* Data Table */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -384,7 +433,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               )}
-            </Card>
+            </Card> */}
 
             {filteredData.length === 0 && (
               <Card>

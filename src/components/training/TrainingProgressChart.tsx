@@ -40,24 +40,37 @@ export const TrainingProgressChart = ({
     (ep) => ep.phase_type === "online"
   )?.episode_number;
 
+  // Split data into offline and online segments for color transition
+  // IMPORTANT: Both segments include the transition point to ensure continuity
+  const offlineData = data.map((d) => ({
+    ...d,
+    offlineValue:
+      d.episode <= (onlineStartEpisode || Infinity) ? d.value : null,
+    onlineValue: d.episode >= (onlineStartEpisode || 0) ? d.value : null,
+  }));
+
   const metricConfig = {
     passenger_throughput: {
       color: "hsl(var(--primary))",
+      onlineColor: "hsl(142 76% 36%)", // Green
       label: "Passengers/Cycle",
       higherBetter: true,
     },
     avg_waiting_time: {
       color: "hsl(var(--destructive))",
+      onlineColor: "hsl(142 76% 36%)", // Green
       label: "Seconds",
       higherBetter: false,
     },
     total_reward: {
-      color: "hsl(142 76% 36%)",
+      color: "hsl(var(--primary))",
+      onlineColor: "hsl(142 76% 36%)", // Green
       label: "Reward",
       higherBetter: true,
     },
     avg_queue_length: {
       color: "hsl(48 96% 53%)",
+      onlineColor: "hsl(142 76% 36%)", // Green
       label: "Vehicles",
       higherBetter: false,
     },
@@ -72,7 +85,7 @@ export const TrainingProgressChart = ({
           <div className="flex items-center gap-2">
             <CardTitle>{title}</CardTitle>
             <InfoTooltip
-              content={`Shows ${title.toLowerCase()} across training episodes. The vertical line marks the transition from offline to online training.`}
+              content={`Shows ${title.toLowerCase()} across training episodes. The line changes to green when online training begins.`}
             />
           </div>
           <div className="flex gap-2">
@@ -93,7 +106,7 @@ export const TrainingProgressChart = ({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={data}>
+          <LineChart data={offlineData}>
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis
               dataKey="episode"
@@ -111,15 +124,21 @@ export const TrainingProgressChart = ({
               }}
             />
             <Tooltip
-              formatter={(value: number) => [value.toFixed(1), title]}
+              formatter={(value: number, name: string) => {
+                const displayName = name.includes("offline")
+                  ? "Offline Phase"
+                  : "Online Phase";
+                return value !== null ? [value.toFixed(1), displayName] : null;
+              }}
               labelFormatter={(episode) => `Episode ${episode}`}
             />
-            <Legend />
+            <Legend formatter={(value) => title} iconType="line" />
             {onlineStartEpisode && (
               <ReferenceLine
                 x={onlineStartEpisode}
                 stroke="hsl(var(--muted-foreground))"
                 strokeDasharray="3 3"
+                strokeWidth={2}
                 label={{
                   value: "Online Training Starts",
                   position: "top",
@@ -128,13 +147,27 @@ export const TrainingProgressChart = ({
                 }}
               />
             )}
+            {/* Offline phase segment (blue) - includes transition point */}
             <Line
               type="monotone"
-              dataKey="value"
+              dataKey="offlineValue"
               stroke={config.color}
               strokeWidth={2}
               dot={false}
-              name={title}
+              connectNulls={false}
+              name="offlinePhase"
+              legendType="none"
+            />
+            {/* Online phase segment (green) - starts from transition point */}
+            <Line
+              type="monotone"
+              dataKey="onlineValue"
+              stroke={config.onlineColor}
+              strokeWidth={2}
+              dot={false}
+              connectNulls={false}
+              name="onlinePhase"
+              legendType="none"
             />
           </LineChart>
         </ResponsiveContainer>
@@ -142,9 +175,16 @@ export const TrainingProgressChart = ({
           <p className="text-sm text-muted-foreground">
             📊 <strong>Training Progress:</strong>{" "}
             {config.higherBetter ? "Higher" : "Lower"} values indicate better
-            performance. The algorithm learns optimal policies during offline
-            training (episodes 1-100), then applies them in during online
-            training (episodes 101-150).
+            performance. The line transitions from{" "}
+            <span style={{ color: config.color, fontWeight: "bold" }}>
+              blue
+            </span>{" "}
+            to{" "}
+            <span style={{ color: config.onlineColor, fontWeight: "bold" }}>
+              green
+            </span>{" "}
+            at episode {onlineStartEpisode}, marking the shift from offline
+            learning to online real-time application.
           </p>
         </div>
       </CardContent>

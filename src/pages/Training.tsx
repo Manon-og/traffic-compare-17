@@ -141,7 +141,7 @@ const Training = () => {
         </Tabs>
 
         {/* Baseline Comparisons */}
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <h2 className="text-xl font-semibold">
             Baseline Comparison: D3QN vs Fixed Time
           </h2>
@@ -165,10 +165,10 @@ const Training = () => {
             metric="jeepneys_processed"
             title="Public Vehicle Throughput Comparison"
           />
-        </div>
+        </div> */}
 
         {/* Statistical Significance */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Statistical Validation</CardTitle>
           </CardHeader>
@@ -207,7 +207,7 @@ const Training = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
