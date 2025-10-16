@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
 
 interface TrafficFiltersProps {
   availableRuns: string[];
@@ -53,9 +54,17 @@ export const TrafficFilters = ({
       onRunsChange(selectedRuns.filter((id) => id !== runId));
     }
   };
+  const {
+    experiment,
+    episodes,
+    validations,
+    baseline,
+    objectives,
+    laneMetrics,
+  } = dummyTrainingDataset;
 
   return (
-    <Card className="w-full max-w-sm h-[780px] flex flex-col">
+    <Card className="w-full max-w-sm flex flex-col">
       <CardHeader className="flex-shrink-0 pb-4">
         <div className="flex items-center gap-2">
           <CardTitle className="text-lg">Traffic Dashboard</CardTitle>
@@ -119,7 +128,7 @@ export const TrafficFilters = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">🌐 All Intersections</SelectItem>
+              <SelectItem value="all">All Intersections</SelectItem>
               {availableIntersections.map((intId) => (
                 <SelectItem key={intId} value={intId}>
                   📍 {intId}
@@ -127,59 +136,6 @@ export const TrafficFilters = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Cycle Range */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium">Time Window</Label>
-            <InfoTooltip content="Select the range of traffic cycles to analyze. Each cycle typically represents 60-120 seconds of traffic control." />
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Cycle {cycleRange[0]}</span>
-              <span>Cycle {cycleRange[1]}</span>
-            </div>
-            <Slider
-              value={cycleRange}
-              onValueChange={(value) =>
-                onCycleRangeChange(value as [number, number])
-              }
-              max={maxCycles}
-              min={1}
-              step={1}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground text-center">
-              Analyzing {cycleRange[1] - cycleRange[0] + 1} cycle(s)
-            </p>
-          </div>
-        </div>
-
-        {/* Spacer to push export to bottom */}
-        <div className="flex-1" />
-
-        {/* Export Section - Pushed to bottom */}
-        <div className="space-y-3 pt-4 border-t">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Export Data</Label>
-            <Badge variant="outline" className="text-xs">
-              {dataCount} rows
-            </Badge>
-          </div>
-          <Button
-            onClick={onDownloadCSV}
-            variant="outline"
-            size="default"
-            className="w-full"
-            disabled={dataCount === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download Filtered CSV
-          </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            Downloads data matching current filters
-          </p>
         </div>
       </CardContent>
     </Card>

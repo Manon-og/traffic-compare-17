@@ -18,10 +18,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { Car, TrendingDown, Activity, Trophy, Eye, EyeOff } from "lucide-react";
+import {
+  Car,
+  TrendingDown,
+  Activity,
+  Trophy,
+  Eye,
+  EyeOff,
+  TrendingUp,
+} from "lucide-react";
 import { TrainingOutput } from "@/components/traffic/TrainingOutput";
 import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
 import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
+import { ObjectiveKPICards } from "@/components/training/ObjectiveKPICards";
 
 const Index = () => {
   const [data, setData] = useState<TrafficData[]>([]);
@@ -295,6 +304,21 @@ const Index = () => {
               onDownloadCSV={handleDownloadCSV}
               dataCount={filteredData.length}
             />
+            <TrafficFilters
+              availableRuns={availableRuns}
+              selectedRuns={selectedRuns}
+              onRunsChange={setSelectedRuns}
+              availableIntersections={availableIntersections}
+              selectedIntersection={selectedIntersection}
+              onIntersectionChange={setSelectedIntersection}
+              cycleRange={cycleRange}
+              onCycleRangeChange={setCycleRange}
+              maxCycles={maxCycles}
+              hideIncomplete={hideIncomplete}
+              onHideIncompleteChange={setHideIncomplete}
+              onDownloadCSV={handleDownloadCSV}
+              dataCount={filteredData.length}
+            />
 
             {/* KPI Cards */}
             {/* {filteredData.length > 0 && (
@@ -304,6 +328,13 @@ const Index = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Research Objectives Achievement
+              </h2>
+              <ObjectiveKPICards objectives={objectives} />
+            </div>
             {/* Charts */}
             {filteredData.length > 0 && (
               <TrafficChart
@@ -316,7 +347,7 @@ const Index = () => {
             )}
 
             {/* Baseline Comparisons */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h2 className="text-xl font-semibold">
                 Baseline Comparison: D3QN vs Fixed Time
               </h2>
@@ -340,7 +371,7 @@ const Index = () => {
                 metric="jeepneys_processed"
                 title="Public Vehicle Throughput Comparison"
               />
-            </div>
+            </div> */}
 
             {/* <TrainingOutput.DataAnalysis /> */}
 
