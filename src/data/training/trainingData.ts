@@ -5,6 +5,7 @@ export interface TrainingEpisode {
   scenario_name: string;
   scenario_day: string;
   scenario_cycle: number;
+  intersection_id?: string; // Add this for intersection filtering
   total_reward: number;
   avg_loss: number;
   epsilon_value: number;
@@ -21,6 +22,28 @@ export interface TrainingEpisode {
   pt_passenger_throughput: number;
   memory_size: number;
   timestamp: string;
+
+  // Vehicle type breakdown
+  vehicle_breakdown?: {
+    cars: number;
+    motorcycles: number;
+    trucks: number;
+    tricycles: number;
+    jeepneys: number;
+    modern_jeepneys: number;
+    buses: number;
+  };
+
+  // Passenger contribution by vehicle type
+  passenger_breakdown?: {
+    car_passengers: number;
+    motorcycle_passengers: number;
+    truck_passengers: number;
+    tricycle_passengers: number;
+    jeepney_passengers: number;
+    modern_jeepney_passengers: number;
+    bus_passengers: number;
+  };
 }
 
 export interface ValidationResult {

@@ -26,11 +26,16 @@ import {
   Eye,
   EyeOff,
   TrendingUp,
+  ArrowDown,
 } from "lucide-react";
 import { TrainingOutput } from "@/components/traffic/TrainingOutput";
 import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
 import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
+import { TrainingEpisode } from "@/data/training/trainingData";
 import { ObjectiveKPICards } from "@/components/training/ObjectiveKPICards";
+import { MetricChart } from "@/components/training/MetricChart";
+import { VehicleBreakdownCard } from "@/components/training/VehicleBreakdownCard";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [data, setData] = useState<TrafficData[]>([]);
@@ -41,6 +46,19 @@ const Index = () => {
   const [hideIncomplete, setHideIncomplete] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<number | undefined>();
   const [showDataTable, setShowDataTable] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<string>(
+    "passenger_throughput"
+  );
+  const [hoveredCycleData, setHoveredCycleData] = useState<{
+    cycle: number;
+    cars: number;
+    motorcycles: number;
+    trucks: number;
+    tricycles: number;
+    jeepneys: number;
+    modern_jeepneys: number;
+    buses: number;
+  }>();
   const { toast } = useToast();
 
   const {
@@ -62,6 +80,41 @@ const Index = () => {
   const avgJeepneys =
     recentEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
     recentEpisodes.length;
+
+  // Handle cycle hover for vehicle breakdown
+  const handleCycleHover = (cycleData: TrainingEpisode | null) => {
+    console.log("Hover event:", cycleData); // Debug log
+
+    if (!cycleData) {
+      setHoveredCycleData(undefined);
+      return;
+    }
+
+    // Check if vehicle breakdown exists
+    if (!cycleData.vehicle_breakdown) {
+      console.warn(
+        "No vehicle breakdown data for episode:",
+        cycleData.episode_number
+      );
+      setHoveredCycleData(undefined);
+      return;
+    }
+
+    const breakdown = cycleData.vehicle_breakdown;
+    const newData = {
+      cycle: cycleData.episode_number,
+      cars: breakdown.cars || 0,
+      motorcycles: breakdown.motorcycles || 0,
+      trucks: breakdown.trucks || 0,
+      tricycles: breakdown.tricycles || 0,
+      jeepneys: breakdown.jeepneys || 0,
+      modern_jeepneys: breakdown.modern_jeepneys || 0,
+      buses: breakdown.buses || 0,
+    };
+
+    console.log("Setting vehicle data:", newData); // Debug log
+    setHoveredCycleData(newData);
+  };
 
   // Load sample data on mount
   useEffect(() => {
@@ -304,28 +357,15 @@ const Index = () => {
               onDownloadCSV={handleDownloadCSV}
               dataCount={filteredData.length}
             />
-            <TrafficFilters
-              availableRuns={availableRuns}
-              selectedRuns={selectedRuns}
-              onRunsChange={setSelectedRuns}
-              availableIntersections={availableIntersections}
-              selectedIntersection={selectedIntersection}
-              onIntersectionChange={setSelectedIntersection}
-              cycleRange={cycleRange}
-              onCycleRangeChange={setCycleRange}
-              maxCycles={maxCycles}
-              hideIncomplete={hideIncomplete}
-              onHideIncompleteChange={setHideIncomplete}
-              onDownloadCSV={handleDownloadCSV}
-              dataCount={filteredData.length}
-            />
+
+            {/* Vehicle Breakdown Card */}
+            <VehicleBreakdownCard cycleData={hoveredCycleData} />
 
             {/* KPI Cards */}
             {/* {filteredData.length > 0 && (
               <div className="space-y-4">{renderKPIs()}</div>
             )} */}
           </div>
-
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             <div className="space-y-3">
@@ -333,10 +373,56 @@ const Index = () => {
                 <TrendingUp className="h-5 w-5" />
                 Research Objectives Achievement
               </h2>
-              <ObjectiveKPICards objectives={objectives} />
+              <ObjectiveKPICards
+                objectives={objectives}
+                selectedMetric={selectedMetric}
+                onMetricSelect={setSelectedMetric}
+              />
             </div>
-            {/* Charts */}
+
+            {/* Connection Indicator */}
+            {/* <div className="flex justify-center py-2">
+              <div
+                className={cn(
+                  "flex flex-col items-center transition-opacity duration-300",
+                  selectedMetric ? "opacity-100" : "opacity-30"
+                )}
+              >
+                <ArrowDown className="h-6 w-6 text-primary animate-bounce" />
+                <div className="h-8 w-0.5 bg-gradient-to-b from-primary to-transparent" />
+              </div>
+            </div> */}
+
+            {/* Metric Chart */}
             {filteredData.length > 0 && (
+              <div
+                className={cn(
+                  "transition-all duration-300",
+                  selectedMetric && "ring-2 ring-primary/20 rounded-lg"
+                )}
+              >
+                <MetricChart
+                  data={filteredData}
+                  metric={selectedMetric}
+                  episodes={episodes}
+                  onCycleHover={handleCycleHover}
+                  title={
+                    selectedMetric === "passenger_throughput"
+                      ? "Passenger Throughput Over Time"
+                      : selectedMetric === "public_vehicle_throughput"
+                      ? "Public Vehicle Throughput Over Time"
+                      : selectedMetric === "passenger_waiting_time"
+                      ? "Passenger Waiting Time Over Time"
+                      : selectedMetric === "overall_vehicle_throughput"
+                      ? "Overall Vehicle Throughput Over Time"
+                      : "Performance Over Time"
+                  }
+                />
+              </div>
+            )}
+
+            {/* Original Charts - Commented Out */}
+            {/* {filteredData.length > 0 && (
               <TrafficChart
                 timeSeriesData={timeSeriesData}
                 laneData={laneData}
@@ -344,7 +430,7 @@ const Index = () => {
                 onCycleSelect={setSelectedCycle}
                 metric="Passenger Throughput"
               />
-            )}
+            )} */}
 
             {/* Baseline Comparisons */}
             {/* <div className="space-y-4">

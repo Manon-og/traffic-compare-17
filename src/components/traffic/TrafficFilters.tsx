@@ -84,7 +84,7 @@ export const TrafficFilters = ({
               {selectedRuns.length} selected
             </Badge>
           </div>
-          <InfoTooltip content="Select which traffic control systems to compare. Fixed-time uses pre-programmed signal timing, while RL uses adaptive algorithms." />
+          {/* <InfoTooltip content="Select which traffic control systems to compare. Fixed-time uses pre-programmed signal timing, while RL uses adaptive algorithms." /> */}
           <div className="space-y-2">
             {availableRuns.map((runId) => (
               <div key={runId} className="flex items-center space-x-2">
