@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Activity, Timer } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TrainingMetricsCardsProps {
@@ -8,7 +8,7 @@ interface TrainingMetricsCardsProps {
     avgPassengerThroughput: number;
     avgWaitingTime: number;
     avgReward: number;
-    avgQueueLength: number;
+    avgPredictionAccuracy: number;
   };
   selectedMetric?: string;
   onMetricSelect?: (metric: string) => void;
@@ -57,13 +57,13 @@ export const TrainingMetricsCards = ({
       borderColor: "border-green-200",
     },
     {
-      title: "Average Queue Length",
-      value: actualValues.avgQueueLength,
-      suffix: " vehicles",
-      subtitle: "Average vehicles in queue",
-      icon: Activity,
-      metricKey: "avg_queue_length",
-      higherBetter: false,
+      title: "Prediction Accuracy",
+      value: actualValues.avgPredictionAccuracy,
+      suffix: "%",
+      subtitle: "LSTM traffic phase prediction accuracy",
+      icon: Target,
+      metricKey: "prediction_accuracy",
+      higherBetter: true,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",

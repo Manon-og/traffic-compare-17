@@ -148,9 +148,16 @@ export const generateDummyTrainingData = (experimentId: string = "exp-001") => {
     const baseWaitingTime = (60 - learningProgress * 25) / cycleImprovement;
     const baseReward = (100 + learningProgress * 150) * cycleImprovement;
 
+    // LSTM Prediction Accuracy (BAD performance, improves slowly)
+    const baseAccuracy = 35 + learningProgress * 25; // Starts at 35%, max ~60%
+    const accuracyNoise = (Math.random() - 0.5) * 15; // High variance ±7.5%
+    const prediction_accuracy = Math.max(
+      20,
+      Math.min(60, baseAccuracy + accuracyNoise)
+    );
+
     const baseTime = new Date("2024-01-01T08:00:00");
     baseTime.setMinutes(baseTime.getMinutes() + episode * 5);
-
     const episodeData: TrainingEpisode = {
       experiment_id: experimentId,
       episode_number: episode,
@@ -159,6 +166,10 @@ export const generateDummyTrainingData = (experimentId: string = "exp-001") => {
       scenario_day: days[episode % days.length],
       scenario_cycle: cycleNumber,
       intersection_id: intersection, // Associate with specific intersection
+
+      // LSTM-specific metric (BAD PERFORMANCE)
+      prediction_accuracy: Math.round(prediction_accuracy * 100) / 100,
+
       total_reward: baseReward * onlineBonus + (Math.random() * 30 - 15),
       avg_loss:
         Math.max(0.001, 0.01 - learningProgress * 0.008) *

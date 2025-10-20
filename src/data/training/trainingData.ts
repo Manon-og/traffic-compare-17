@@ -6,6 +6,10 @@ export interface TrainingEpisode {
   scenario_day: string;
   scenario_cycle: number;
   intersection_id?: string; // Add this for intersection filtering
+
+  // LSTM-specific metric (only this one)
+  prediction_accuracy: number; // NEW: % accuracy in predicting traffic phases
+
   total_reward: number;
   avg_loss: number;
   epsilon_value: number;
@@ -21,9 +25,7 @@ export interface TrainingEpisode {
   buses_processed: number;
   pt_passenger_throughput: number;
   memory_size: number;
-  timestamp: string;
-
-  // Vehicle type breakdown
+  timestamp: string; // Vehicle type breakdown
   vehicle_breakdown?: {
     cars: number;
     motorcycles: number;

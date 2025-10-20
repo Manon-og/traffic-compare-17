@@ -20,6 +20,7 @@ interface TrainingProgressChartProps {
     | "passenger_throughput"
     | "avg_waiting_time"
     | "total_reward"
+    | "prediction_accuracy"
     | "avg_queue_length";
   title: string;
 }
@@ -66,6 +67,12 @@ export const TrainingProgressChart = ({
       color: "hsl(var(--primary))",
       onlineColor: "hsl(142 76% 36%)", // Green
       label: "Reward",
+      higherBetter: true,
+    },
+    prediction_accuracy: {
+      color: "hsl(271 81% 56%)", // Purple
+      onlineColor: "hsl(271 81% 66%)",
+      label: "Accuracy (%)",
       higherBetter: true,
     },
     avg_queue_length: {
