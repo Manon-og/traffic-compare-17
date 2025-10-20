@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingProgressChart } from "@/components/training/TrainingProgressChart";
-import { ObjectiveKPICards } from "@/components/training/ObjectiveKPICards";
+import { TrainingMetricsCards } from "@/components/training/TrainingMetricsCards";
 import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
 import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
 import { Activity, TrendingUp, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 const Training = () => {
   const {
@@ -25,9 +26,24 @@ const Training = () => {
   const avgWaitingTime =
     recentEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
     recentEpisodes.length;
+  const avgQueueLength =
+    recentEpisodes.reduce((sum, ep) => sum + ep.avg_queue_length, 0) /
+    recentEpisodes.length;
+  const avgReward =
+    recentEpisodes.reduce((sum, ep) => sum + ep.total_reward, 0) /
+    recentEpisodes.length;
   const avgJeepneys =
     recentEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
     recentEpisodes.length;
+
+  const actualValues = {
+    avgPassengerThroughput,
+    avgWaitingTime,
+    avgReward,
+    avgQueueLength,
+  };
+
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
@@ -89,22 +105,28 @@ const Training = () => {
           </CardContent>
         </Card>
 
-        {/* Objective Achievement KPIs */}
+        {/* Training Metrics Cards */}
         <div className="space-y-3">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Research Objectives Achievement
+            Average Training Metrics (Last 20 Episodes)
           </h2>
-          <ObjectiveKPICards objectives={objectives} />
+          <TrainingMetricsCards
+            actualValues={actualValues}
+            selectedMetric={selectedMetric}
+            onMetricSelect={setSelectedMetric}
+          />
         </div>
 
         {/* Training Progress Charts */}
         <Tabs defaultValue="passenger" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="passenger">Passenger Throughput</TabsTrigger>
-            <TabsTrigger value="waiting">Waiting Time</TabsTrigger>
-            <TabsTrigger value="reward">Total Reward</TabsTrigger>
-            <TabsTrigger value="queue">Queue Length</TabsTrigger>
+            <TabsTrigger value="passenger">
+              Average Passenger Throughput
+            </TabsTrigger>
+            <TabsTrigger value="waiting">Average Waiting Time</TabsTrigger>
+            <TabsTrigger value="reward">Average Reward</TabsTrigger>
+            <TabsTrigger value="queue">Average Queue Length</TabsTrigger>
           </TabsList>
 
           <TabsContent value="passenger" className="space-y-4">
