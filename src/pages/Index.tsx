@@ -1,36 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrafficData, sampleData } from "@/data/sampleData";
+import { TrafficData } from "@/data/sampleData";
 import {
   filterData,
   computeKPIs,
   buildTimeSeriesData,
   getLaneBreakdown,
-  calculateDelta,
-  parseCSVData,
-  validateSchema,
   KPIData,
   ComparisonKPIs,
 } from "@/utils/trafficUtils";
-import { KPICard } from "@/components/traffic/KPICard";
-import { TrafficChart } from "@/components/traffic/TrafficChart";
+import { convertEpisodesToTrafficData } from "@/utils/trainingDataConverter";
 import { TrafficFilters } from "@/components/traffic/TrafficFilters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Car,
-  TrendingDown,
-  Activity,
-  Trophy,
-  Eye,
-  EyeOff,
-  TrendingUp,
-  ArrowDown,
-} from "lucide-react";
-import { TrainingOutput } from "@/components/traffic/TrainingOutput";
-import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
-import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
+import { Card, CardContent } from "@/components/ui/card";
+import { Car, TrendingUp } from "lucide-react";
+import { dashboardData } from "@/data/training";
 import { TrainingEpisode } from "@/data/training/trainingData";
 import { ObjectiveKPICards } from "@/components/training/ObjectiveKPICards";
 import { MetricChart } from "@/components/training/MetricChart";
@@ -44,8 +26,6 @@ const Index = () => {
     useState<string>("all");
   const [cycleRange, setCycleRange] = useState<[number, number]>([1, 30]);
   const [hideIncomplete, setHideIncomplete] = useState(false);
-  const [selectedCycle, setSelectedCycle] = useState<number | undefined>();
-  const [showDataTable, setShowDataTable] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<string>(
     "passenger_throughput"
   );
@@ -59,49 +39,17 @@ const Index = () => {
     modern_jeepneys: number;
     buses: number;
   }>();
-  const { toast } = useToast();
 
-  const {
-    experiment,
-    episodes,
-    validations,
-    baseline,
-    objectives,
-    laneMetrics,
-  } = dummyTrainingDataset;
+  const { episodes, objectives } = dashboardData;
 
-  const recentEpisodes = episodes.slice(-20);
-  const avgPassengerThroughput =
-    recentEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
-    recentEpisodes.length;
-  const avgWaitingTime =
-    recentEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
-    recentEpisodes.length;
-  const avgJeepneys =
-    recentEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-    recentEpisodes.length;
-
-  // Handle cycle hover for vehicle breakdown
   const handleCycleHover = (cycleData: TrainingEpisode | null) => {
-    console.log("Hover event:", cycleData); // Debug log
-
-    if (!cycleData) {
-      setHoveredCycleData(undefined);
-      return;
-    }
-
-    // Check if vehicle breakdown exists
-    if (!cycleData.vehicle_breakdown) {
-      console.warn(
-        "No vehicle breakdown data for episode:",
-        cycleData.episode_number
-      );
+    if (!cycleData || !cycleData.vehicle_breakdown) {
       setHoveredCycleData(undefined);
       return;
     }
 
     const breakdown = cycleData.vehicle_breakdown;
-    const newData = {
+    setHoveredCycleData({
       cycle: cycleData.episode_number,
       cars: breakdown.cars || 0,
       motorcycles: breakdown.motorcycles || 0,
@@ -110,17 +58,14 @@ const Index = () => {
       jeepneys: breakdown.jeepneys || 0,
       modern_jeepneys: breakdown.modern_jeepneys || 0,
       buses: breakdown.buses || 0,
-    };
-
-    console.log("Setting vehicle data:", newData); // Debug log
-    setHoveredCycleData(newData);
+    });
   };
 
-  // Load sample data on mount
   useEffect(() => {
-    setData(sampleData);
+    const convertedData = convertEpisodesToTrafficData(episodes);
+    setData(convertedData);
     setSelectedRuns(["Fixed Time", "D3QN Multi Agent"]);
-  }, []);
+  }, [episodes]);
 
   // Extract available options from data
   const availableRuns = useMemo(
@@ -151,23 +96,26 @@ const Index = () => {
     [data, selectedRuns, selectedIntersection, cycleRange, hideIncomplete]
   );
 
-  // Compute KPIs
+  const latestCycleData = useMemo(() => {
+    const maxCycle = Math.max(...filteredData.map((row) => row.cycle_id), 0);
+    return filteredData.filter((row) => row.cycle_id === maxCycle);
+  }, [filteredData]);
+
   const kpis = useMemo(() => {
     if (selectedRuns.length <= 1) {
-      return computeKPIs(filteredData) as KPIData;
+      return computeKPIs(latestCycleData) as KPIData;
     }
-    return computeKPIs(filteredData, true) as ComparisonKPIs;
-  }, [filteredData, selectedRuns]);
+    return computeKPIs(latestCycleData, true) as ComparisonKPIs;
+  }, [latestCycleData, selectedRuns]);
 
-  // Build chart data - Change from total_queue to passenger-focused metrics
   const timeSeriesData = useMemo(
     () => buildTimeSeriesData(filteredData, "passenger_throughput"),
     [filteredData]
   );
 
   const laneData = useMemo(
-    () => getLaneBreakdown(filteredData, selectedCycle),
-    [filteredData, selectedCycle]
+    () => getLaneBreakdown(filteredData),
+    [filteredData]
   );
 
   const handleDownloadCSV = () => {
@@ -188,118 +136,6 @@ const Index = () => {
     }.csv`;
     link.click();
     URL.revokeObjectURL(url);
-  };
-
-  const renderKPIs = () => {
-    if (selectedRuns.length <= 1) {
-      const singleKPI = kpis as KPIData;
-      return (
-        <div className="grid gap-4 grid-cols-1">
-          <KPICard
-            title="Passenger Throughput"
-            subtitle="passengers per cycle"
-            value={singleKPI.avgPassengerThroughput || 1}
-            icon={<Car className="h-4 w-4" />}
-          />
-          <KPICard
-            title="Public Vehicle Throughput"
-            subtitle="public vehicles per cycle"
-            value={singleKPI.avgPublicVehicleThroughput || 0}
-            icon={<TrendingDown className="h-4 w-4" />}
-          />
-          {/* <KPICard
-            title="TSP Activations"
-            subtitle="activations per cycle"
-            value={singleKPI.avgTspActivations || 0}
-            icon={<Activity className="h-4 w-4" />}
-          /> */}
-          {/* <KPICard
-            title="Coordination Score"
-            subtitle="multi-agent coordination"
-            value={singleKPI.avgCoordinationScore || 0}
-            icon={<Trophy className="h-4 w-4" />}
-          /> */}
-        </div>
-      );
-    }
-
-    // Comparison view
-    const comparisonKPIs = kpis as ComparisonKPIs;
-    const fixedTimeKey = selectedRuns.find((run) => run.includes("Fixed Time"));
-    const rlKey = selectedRuns.find((run) => run.includes("D3QN"));
-
-    if (!fixedTimeKey || !rlKey) return null;
-
-    const fixedTime = comparisonKPIs[fixedTimeKey];
-    const rl = comparisonKPIs[rlKey];
-
-    return (
-      <div className="grid gap-4 grid-cols-1">
-        <KPICard
-          title="Passenger Throughput"
-          subtitle="D3QN vs Fixed Time"
-          value={rl.avgPassengerThroughput || 0}
-          delta={calculateDelta(
-            rl.avgPassengerThroughput || 0,
-            fixedTime.avgPassengerThroughput || 0
-          )}
-          deltaType={
-            (rl.avgPassengerThroughput || 0) >
-            (fixedTime.avgPassengerThroughput || 0)
-              ? "positive"
-              : "negative"
-          }
-          icon={<Car className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Public Vehicle Throughput"
-          subtitle="D3QN vs Fixed Time"
-          value={rl.avgPublicVehicleThroughput || 0}
-          delta={calculateDelta(
-            rl.avgPublicVehicleThroughput || 0,
-            fixedTime.avgPublicVehicleThroughput || 0
-          )}
-          deltaType={
-            (rl.avgPublicVehicleThroughput || 0) >
-            (fixedTime.avgPublicVehicleThroughput || 0)
-              ? "positive"
-              : "negative"
-          }
-          icon={<TrendingDown className="h-4 w-4" />}
-        />
-        {/* <KPICard
-          title="TSP Activations"
-          subtitle="D3QN vs Fixed Time"
-          value={rl.avgTspActivations || 0}
-          delta={calculateDelta(
-            rl.avgTspActivations || 0,
-            fixedTime.avgTspActivations || 0
-          )}
-          deltaType={
-            (rl.avgTspActivations || 0) > (fixedTime.avgTspActivations || 0)
-              ? "positive"
-              : "negative"
-          }
-          icon={<Activity className="h-4 w-4" />}
-        /> */}
-        {/* <KPICard
-          title="Coordination Score"
-          subtitle="D3QN vs Fixed Time"
-          value={rl.avgCoordinationScore || 0}
-          delta={calculateDelta(
-            rl.avgCoordinationScore || 0,
-            fixedTime.avgCoordinationScore || 0
-          )}
-          deltaType={
-            (rl.avgCoordinationScore || 0) >
-            (fixedTime.avgCoordinationScore || 0)
-              ? "positive"
-              : "negative"
-          }
-          icon={<Trophy className="h-4 w-4" />}
-        /> */}
-      </div>
-    );
   };
 
   return (

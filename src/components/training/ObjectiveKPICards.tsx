@@ -51,7 +51,7 @@ export const ObjectiveKPICards = ({
     },
     {
       title: "Overall Vehicle Throughput",
-      value: objectives.multi_agent_jeepney_travel_time_reduction_pct,
+      value: objectives.overall_vehicle_throughput_improvement_pct || 0,
       suffix: "%",
       subtitle: "Total Vehicles per Cycle",
       achieved: objectives.objective_3_achieved,

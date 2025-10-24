@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrainingProgressChart } from "@/components/training/TrainingProgressChart";
 import { TrainingMetricsCards } from "@/components/training/TrainingMetricsCards";
 import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
-import { dummyTrainingDataset } from "@/data/training/dummyTrainingData";
+import { trainingData } from "@/data/training";
 import { Activity, TrendingUp, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -16,7 +16,7 @@ const Training = () => {
     baseline,
     objectives,
     laneMetrics,
-  } = dummyTrainingDataset;
+  } = trainingData;
 
   // Calculate average D3QN values from last 20 episodes
   const recentEpisodes = episodes.slice(-20);

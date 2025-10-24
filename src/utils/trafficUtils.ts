@@ -98,32 +98,49 @@ export const computeKPIs = (
   }
 
   if (!groupByRun) {
+    // ✅ Filter to only use aggregated rows (avoid counting lanes multiple times)
+    const aggregatedData = data.filter(
+      (row) => row.lane_id === "Aggregate" || row.lane_id.startsWith("Lane_")
+    );
+
+    // If all data is lane-based, use it directly
+    const dataToUse =
+      aggregatedData.length > 0 && aggregatedData[0].lane_id === "Aggregate"
+        ? aggregatedData
+        : data;
+
     const avgTotalQueue =
-      data.reduce((sum, row) => sum + row.total_queue, 0) / data.length;
+      dataToUse.reduce((sum, row) => sum + row.total_queue, 0) /
+      dataToUse.length;
     const avgThroughput =
-      data.reduce((sum, row) => sum + row.throughput_pcu, 0) / data.length;
+      dataToUse.reduce((sum, row) => sum + row.throughput_pcu, 0) /
+      dataToUse.length;
     const avgOccupancy =
-      data.reduce((sum, row) => sum + row.occupancy, 0) / data.length;
+      dataToUse.reduce((sum, row) => sum + row.occupancy, 0) / dataToUse.length;
     const avgWaitingTime =
-      data.reduce((sum, row) => sum + (row.waiting_time || 0), 0) / data.length;
+      dataToUse.reduce((sum, row) => sum + (row.waiting_time || 0), 0) /
+      dataToUse.length;
     const avgSpeed =
-      data.reduce((sum, row) => sum + (row.avg_speed || 0), 0) / data.length;
+      dataToUse.reduce((sum, row) => sum + (row.avg_speed || 0), 0) /
+      dataToUse.length;
     const avgCompletedTrips =
-      data.reduce((sum, row) => sum + (row.completed_trips || 0), 0) /
-      data.length;
+      dataToUse.reduce((sum, row) => sum + (row.completed_trips || 0), 0) /
+      dataToUse.length;
     const avgPassengerThroughput =
-      data.reduce((sum, row) => sum + (row.passenger_throughput || 0), 0) /
-      data.length;
+      dataToUse.reduce((sum, row) => sum + (row.passenger_throughput || 0), 0) /
+      dataToUse.length;
     const avgPublicVehicleThroughput =
-      data.reduce((sum, row) => sum + (row.public_vehicle_throughput || 0), 0) /
-      data.length;
+      dataToUse.reduce(
+        (sum, row) => sum + (row.public_vehicle_throughput || 0),
+        0
+      ) / dataToUse.length;
     const avgTspActivations =
-      data.reduce((sum, row) => sum + (row.tsp_activations || 0), 0) /
-      data.length;
+      dataToUse.reduce((sum, row) => sum + (row.tsp_activations || 0), 0) /
+      dataToUse.length;
     const avgCoordinationScore =
-      data.reduce((sum, row) => sum + (row.coordination_score || 0), 0) /
-      data.length;
-    const rewardData = data.filter(
+      dataToUse.reduce((sum, row) => sum + (row.coordination_score || 0), 0) /
+      dataToUse.length;
+    const rewardData = dataToUse.filter(
       (row) => row.reward !== undefined && row.reward !== null
     );
     const avgReward =
@@ -131,6 +148,15 @@ export const computeKPIs = (
         ? rewardData.reduce((sum, row) => sum + (row.reward || 0), 0) /
           rewardData.length
         : undefined;
+
+    console.log("KPI Calculation Debug:");
+    console.log("  Total data points:", data.length);
+    console.log("  Using data points:", dataToUse.length);
+    console.log(
+      "  Avg Passenger Throughput:",
+      avgPassengerThroughput.toFixed(1)
+    );
+    console.log("  Avg Waiting Time:", avgWaitingTime.toFixed(1));
 
     return {
       avgTotalQueue: Math.round(avgTotalQueue * 10) / 10,
@@ -167,6 +193,7 @@ export const buildTimeSeriesData = (
   data: TrafficData[],
   metric: keyof TrafficData = "total_queue"
 ) => {
+  // Group by run_id and cycle_id
   const grouped = data.reduce((acc, row) => {
     const key = `${row.run_id}_${row.cycle_id}`;
     if (!acc[key]) {
@@ -177,18 +204,37 @@ export const buildTimeSeriesData = (
         timestamp_step: row.timestamp_step,
       };
     }
-    acc[key].values.push(row[metric] as number);
+
+    // Only add if not already aggregated (check if lane_id is "Aggregate")
+    if (row.lane_id === "Aggregate") {
+      // Use value directly (already aggregated)
+      acc[key].values.push(row[metric] as number);
+    } else {
+      // For legacy lane-based data, collect all lanes
+      acc[key].values.push(row[metric] as number);
+    }
+
     return acc;
   }, {} as Record<string, { cycle_id: number; run_id: string; values: number[]; timestamp_step?: number }>);
 
+  // Convert to array and calculate averages
   return Object.values(grouped)
-    .map((group) => ({
-      cycle_id: group.cycle_id,
-      run_id: group.run_id,
-      value:
-        group.values.reduce((sum, val) => sum + val, 0) / group.values.length,
-      timestamp_step: group.timestamp_step,
-    }))
+    .map((group) => {
+      // If lane_id is "Aggregate", use first value directly
+      // Otherwise, calculate average across lanes
+      const value =
+        group.values.length === 1
+          ? group.values[0]
+          : group.values.reduce((sum, val) => sum + val, 0) /
+            group.values.length;
+
+      return {
+        cycle_id: group.cycle_id,
+        run_id: group.run_id,
+        value: Math.round(value * 10) / 10,
+        timestamp_step: group.timestamp_step,
+      };
+    })
     .sort((a, b) => a.cycle_id - b.cycle_id);
 };
 
@@ -245,6 +291,35 @@ export const calculateDelta = (current: number, baseline: number): string => {
   const delta = ((current - baseline) / baseline) * 100;
   const sign = delta > 0 ? "+" : "";
   return `${sign}${Math.round(delta)}%`;
+};
+
+/**
+ * Calculate percentage change with proper direction handling
+ * For metrics where LOWER is better (waiting time, delay), shows reduction
+ * For metrics where HIGHER is better (throughput), shows improvement
+ */
+export const calculatePercentageChange = (
+  newValue: number,
+  baselineValue: number,
+  lowerIsBetter: boolean = false
+): { value: number; isImprovement: boolean } => {
+  if (baselineValue === 0) return { value: 0, isImprovement: false };
+
+  const percentChange = ((newValue - baselineValue) / baselineValue) * 100;
+
+  if (lowerIsBetter) {
+    // For waiting time, queue length, etc. - negative change is good
+    return {
+      value: Math.abs(percentChange), // Show as positive number
+      isImprovement: percentChange < 0, // Decrease is improvement
+    };
+  } else {
+    // For throughput, speed, etc. - positive change is good
+    return {
+      value: Math.abs(percentChange),
+      isImprovement: percentChange > 0,
+    };
+  }
 };
 
 export const parseCSVData = (csvText: string): TrafficData[] => {

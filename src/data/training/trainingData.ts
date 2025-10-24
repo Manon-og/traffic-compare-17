@@ -102,6 +102,7 @@ export interface ObjectiveMetric {
   objective_2_achieved: boolean;
   multi_agent_passenger_delay_reduction_pct: number;
   multi_agent_jeepney_travel_time_reduction_pct: number;
+  overall_vehicle_throughput_improvement_pct: number;
   objective_3_achieved: boolean;
   p_value: number;
   effect_size: number;
