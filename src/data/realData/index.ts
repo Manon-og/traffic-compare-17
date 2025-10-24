@@ -440,11 +440,19 @@ console.log("Latest D3QN episodes:", latestD3QNEpisodes.length);
 console.log("Latest Fixed Time episodes:", latestFixedTimeEpisodes.length);
 
 // Debug: Show raw throughput values from latest episodes
-latestD3QNEpisodes.forEach(ep => {
-  console.log(`  D3QN Episode ${ep.episode_number} (${ep.intersection_id}): ${ep.passenger_throughput.toFixed(1)} passengers`);
+latestD3QNEpisodes.forEach((ep) => {
+  console.log(
+    `  D3QN Episode ${ep.episode_number} (${
+      ep.intersection_id
+    }): ${ep.passenger_throughput.toFixed(1)} passengers`
+  );
 });
-latestFixedTimeEpisodes.forEach(ep => {
-  console.log(`  Fixed Episode ${ep.episode_number} (${ep.intersection_id}): ${ep.passenger_throughput.toFixed(1)} passengers`);
+latestFixedTimeEpisodes.forEach((ep) => {
+  console.log(
+    `  Fixed Episode ${ep.episode_number} (${
+      ep.intersection_id
+    }): ${ep.passenger_throughput.toFixed(1)} passengers`
+  );
 });
 
 // Calculate averages from LATEST cycles only
