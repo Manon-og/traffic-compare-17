@@ -24,13 +24,13 @@ const Index = () => {
   const [selectedRuns, setSelectedRuns] = useState<string[]>([]);
   const [selectedIntersection, setSelectedIntersection] =
     useState<string>("all");
-  const [cycleRange, setCycleRange] = useState<[number, number]>([1, 30]);
+  const [cycleRange, setCycleRange] = useState<[number, number]>([1, 66]);
   const [hideIncomplete, setHideIncomplete] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<string>(
     "passenger_throughput"
   );
-  const [hoveredCycleData, setHoveredCycleData] = useState<{
-    cycle: number;
+  const [hoveredEpisodeData, setHoveredEpisodeData] = useState<{
+    episode: number;
     cars: number;
     motorcycles: number;
     trucks: number;
@@ -42,15 +42,15 @@ const Index = () => {
 
   const { episodes, objectives } = dashboardData;
 
-  const handleCycleHover = (cycleData: TrainingEpisode | null) => {
-    if (!cycleData || !cycleData.vehicle_breakdown) {
-      setHoveredCycleData(undefined);
+  const handleEpisodeHover = (episodeData: TrainingEpisode | null) => {
+    if (!episodeData || !episodeData.vehicle_breakdown) {
+      setHoveredEpisodeData(undefined);
       return;
     }
 
-    const breakdown = cycleData.vehicle_breakdown;
-    setHoveredCycleData({
-      cycle: cycleData.episode_number,
+    const breakdown = episodeData.vehicle_breakdown;
+    setHoveredEpisodeData({
+      episode: episodeData.episode_number,
       cars: breakdown.cars || 0,
       motorcycles: breakdown.motorcycles || 0,
       trucks: breakdown.trucks || 0,
@@ -79,7 +79,7 @@ const Index = () => {
   );
 
   const maxCycles = useMemo(
-    () => Math.max(...data.map((row) => row.cycle_id), 30),
+    () => Math.max(...data.map((row) => row.cycle_id), 66),
     [data]
   );
 
@@ -97,8 +97,8 @@ const Index = () => {
   );
 
   const latestCycleData = useMemo(() => {
-    const maxCycle = Math.max(...filteredData.map((row) => row.cycle_id), 0);
-    return filteredData.filter((row) => row.cycle_id === maxCycle);
+    // Use all filtered data instead of just the latest episode
+    return filteredData;
   }, [filteredData]);
 
   const kpis = useMemo(() => {
@@ -195,7 +195,7 @@ const Index = () => {
             />
 
             {/* Vehicle Breakdown Card */}
-            <VehicleBreakdownCard cycleData={hoveredCycleData} />
+            <VehicleBreakdownCard cycleData={hoveredEpisodeData} />
 
             {/* KPI Cards */}
             {/* {filteredData.length > 0 && (
@@ -241,17 +241,17 @@ const Index = () => {
                   data={filteredData}
                   metric={selectedMetric}
                   episodes={episodes}
-                  onCycleHover={handleCycleHover}
+                  onCycleHover={handleEpisodeHover}
                   title={
                     selectedMetric === "passenger_throughput"
-                      ? "Passenger Throughput Over Time"
+                      ? "Passenger Throughput Over Episodes"
                       : selectedMetric === "public_vehicle_throughput"
-                      ? "Public Vehicle Throughput Over Time"
+                      ? "Public Vehicle Throughput Over Episodes"
                       : selectedMetric === "passenger_waiting_time"
-                      ? "Passenger Waiting Time Over Time"
+                      ? "Passenger Waiting Time Over Episodes"
                       : selectedMetric === "overall_vehicle_throughput"
-                      ? "Overall Vehicle Throughput Over Time"
-                      : "Performance Over Time"
+                      ? "Overall Vehicle Throughput Over Episodes"
+                      : "Performance Over Episodes"
                   }
                 />
               </div>

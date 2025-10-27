@@ -21,7 +21,8 @@ interface TrainingProgressChartProps {
     | "avg_waiting_time"
     | "total_reward"
     | "prediction_accuracy"
-    | "avg_queue_length";
+    | "avg_queue_length"
+    | "avg_speed";
   title: string;
 }
 

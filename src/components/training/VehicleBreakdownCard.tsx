@@ -5,7 +5,7 @@ import { Car, Bike, Bus, Truck } from "lucide-react";
 
 interface VehicleBreakdownCardProps {
   cycleData?: {
-    cycle: number;
+    episode: number;
     cars: number;
     motorcycles: number;
     trucks: number;
@@ -30,7 +30,7 @@ export const VehicleBreakdownCard = ({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-6">
-            Hover over chart to view details
+            Hover over chart to view episode details
           </p>
         </CardContent>
       </Card>
@@ -62,14 +62,14 @@ export const VehicleBreakdownCard = ({
       bgColor: "bg-green-50",
       borderColor: "border-green-200",
     },
-    {
-      label: "Modern Jeepneys",
-      value: cycleData.modern_jeepneys,
-      icon: Bus,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      borderColor: "border-emerald-200",
-    },
+    // {
+    //   label: "Modern Jeepneys",
+    //   value: cycleData.modern_jeepneys,
+    //   icon: Bus,
+    //   color: "text-emerald-600",
+    //   bgColor: "bg-emerald-50",
+    //   borderColor: "border-emerald-200",
+    // },
     {
       label: "Buses",
       value: cycleData.buses,
@@ -104,10 +104,10 @@ export const VehicleBreakdownCard = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CardTitle className="text-sm">Vehicle Breakdown</CardTitle>
-            <InfoTooltip content="Real-time vehicle type distribution for the selected traffic cycle" />
+            <InfoTooltip content="Real-time vehicle type distribution for the selected episode" />
           </div>
           <Badge variant="outline" className="text-xs">
-            Cycle {cycleData.cycle}
+            Episode {cycleData.episode}
           </Badge>
         </div>
         <div className="mt-2 flex items-baseline gap-2">

@@ -1,60 +1,75 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TrainingProgressChart } from "@/components/training/TrainingProgressChart";
 import { TrainingMetricsCards } from "@/components/training/TrainingMetricsCards";
 import { BaselineComparisonChart } from "@/components/training/BaselineComparisonChart";
-import { trainingData } from "@/data/training";
+import { trainingDataset } from "@/data/realData";
+import { lstmData } from "@/data/realData/lstm";
+import { TrainingEpisode } from "@/data/training/trainingData";
 import { Activity, TrendingUp, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
 const Training = () => {
-  const {
-    experiment,
-    episodes,
-    validations,
-    baseline,
-    objectives,
-    laneMetrics,
-  } = trainingData;
-
-  // Calculate average D3QN values from last 20 episodes
-  const recentEpisodes = episodes.slice(-20);
+  // Use processed training data
+  const episodes = trainingDataset.episodes;
+  const experiment = {
+    experiment_name: trainingDataset.experiment.experiment_name,
+    status: trainingDataset.experiment.status,
+    best_reward: trainingDataset.experiment.best_reward,
+  };
+  // Calculate averages from ALL episodes
   const avgPassengerThroughput =
-    recentEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
-    recentEpisodes.length;
+    episodes.reduce((sum, ep) => sum + (ep.passenger_throughput || 0), 0) /
+    episodes.length;
   const avgWaitingTime =
-    recentEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
-    recentEpisodes.length;
-
-  // Keep reward metric
+    episodes.reduce((sum, ep) => sum + (ep.avg_waiting_time || 0), 0) /
+    episodes.length;
   const avgReward =
-    recentEpisodes.reduce((sum, ep) => sum + ep.total_reward, 0) /
-    recentEpisodes.length;
-
-  // LSTM-specific metric
-  const avgPredictionAccuracy =
-    recentEpisodes.reduce((sum, ep) => sum + (ep.prediction_accuracy || 0), 0) /
-    recentEpisodes.length;
+    episodes.reduce((sum, ep) => sum + (ep.total_reward || 0), 0) /
+    episodes.length;
   const avgJeepneys =
-    recentEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-    recentEpisodes.length;
+    episodes.reduce((sum, ep) => sum + (ep.jeepneys_processed || 0), 0) /
+    episodes.length;
+
+  // Calculate average LSTM prediction accuracy from lstmData
+  const avgPredictionAccuracy =
+    lstmData.reduce((sum, ep) => sum + (ep.accuracy || 0), 0) / lstmData.length;
 
   const actualValues = {
     avgPassengerThroughput,
     avgWaitingTime,
     avgReward,
-    avgPredictionAccuracy,
+    avgPredictionAccuracy: avgPredictionAccuracy * 100,
   };
 
-  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  // Default to passenger throughput
+  const [selectedMetric, setSelectedMetric] = useState<string>(
+    "passenger_throughput"
+  );
+
+  const metricTabMap: Record<string, string> = {
+    passenger_throughput: "passenger",
+    avg_waiting_time: "waiting",
+    total_reward: "reward",
+    prediction_accuracy: "accuracy",
+  };
+  const tabMetricMap: Record<string, string> = {
+    passenger: "passenger_throughput",
+    waiting: "avg_waiting_time",
+    reward: "total_reward",
+    accuracy: "prediction_accuracy",
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">D3QN Training Dashboard</h1>
+            <h1 className="text-3xl font-bold">
+              D3QN + LSTM Training Dashboard
+            </h1>
             <Badge
               variant="outline"
               className="bg-success/10 text-success border-success/20"
@@ -64,7 +79,8 @@ const Training = () => {
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            Training metrics for {experiment.experiment_name}
+            Training metrics for {experiment.experiment_name} with LSTM traffic
+            prediction
           </p>
         </div>
 
@@ -79,9 +95,13 @@ const Training = () => {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
               <div>
-                <p className="text-sm text-muted-foreground">Total Episodes</p>
-                <p className="text-2xl font-bold">
-                  {experiment.total_episodes}
+                <p className="text-sm text-muted-foreground">D3QN Episodes</p>
+                <p className="text-2xl font-bold">{episodes.length + 50}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">LSTM Episodes</p>
+                <p className="text-2xl font-bold text-primary">
+                  {lstmData.length}
                 </p>
               </div>
               <div>
@@ -92,16 +112,10 @@ const Training = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Convergence Episode
+                  Avg LSTM Accuracy
                 </p>
-                <p className="text-2xl font-bold text-primary">
-                  {experiment.convergence_episode}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Training Time</p>
                 <p className="text-2xl font-bold">
-                  {((experiment.training_time_minutes || 0) / 60).toFixed(1)}h
+                  {(avgPredictionAccuracy * 100).toFixed(1)}%
                 </p>
               </div>
             </div>
@@ -112,7 +126,7 @@ const Training = () => {
         <div className="space-y-3">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Key Performance Metrics (Last 20 Episodes)
+            Key Performance Metrics
           </h2>
           <TrainingMetricsCards
             actualValues={actualValues}
@@ -122,16 +136,13 @@ const Training = () => {
         </div>
 
         {/* Training Progress Charts */}
-        <Tabs defaultValue="passenger" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="passenger">
-              Average Passenger Throughput
-            </TabsTrigger>
-            <TabsTrigger value="waiting">Average Waiting Time</TabsTrigger>
-            <TabsTrigger value="reward">Average Reward</TabsTrigger>
-            <TabsTrigger value="accuracy">Prediction Accuracy</TabsTrigger>
-          </TabsList>
-
+        <Tabs
+          value={metricTabMap[selectedMetric] || "passenger"}
+          onValueChange={(tab) =>
+            setSelectedMetric(tabMetricMap[tab] || "passenger_throughput")
+          }
+          className="space-y-4"
+        >
           <TabsContent value="passenger" className="space-y-4">
             <TrainingProgressChart
               episodes={episodes}
@@ -158,81 +169,38 @@ const Training = () => {
 
           <TabsContent value="accuracy" className="space-y-4">
             <TrainingProgressChart
-              episodes={episodes}
+              episodes={lstmData.map(
+                (ep): TrainingEpisode => ({
+                  experiment_id: "lstm_training",
+                  episode_number: ep.episode,
+                  phase_type: "online" as const,
+                  scenario_name: `LSTM Episode ${ep.episode}`,
+                  scenario_day: `Day ${Math.floor(ep.episode / 10)}`,
+                  scenario_cycle: ep.episode,
+                  prediction_accuracy: ep.accuracy * 100,
+                  total_reward: 0,
+                  avg_loss: 0,
+                  epsilon_value: 0,
+                  steps_completed: 300,
+                  episode_duration_seconds: 300,
+                  vehicles_served: 0,
+                  completed_trips: 0,
+                  passenger_throughput: 0,
+                  avg_waiting_time: 0,
+                  avg_queue_length: 0,
+                  avg_speed: 0,
+                  jeepneys_processed: 0,
+                  buses_processed: 0,
+                  pt_passenger_throughput: 0,
+                  memory_size: 0,
+                  timestamp: ep.timestamp,
+                })
+              )}
               metric="prediction_accuracy"
-              title="LSTM Prediction Accuracy Over Training"
+              title={`LSTM Prediction Accuracy Over All ${lstmData.length} Episodes`}
             />
           </TabsContent>
         </Tabs>
-
-        {/* Baseline Comparisons */}
-        {/* <div className="space-y-4">
-          <h2 className="text-xl font-semibold">
-            Baseline Comparison: D3QN vs Fixed Time
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <BaselineComparisonChart
-              baselines={baseline}
-              d3qnValue={avgPassengerThroughput}
-              metric="avg_passenger_throughput"
-              title="Passenger Throughput Comparison"
-            />
-            <BaselineComparisonChart
-              baselines={baseline}
-              d3qnValue={avgWaitingTime}
-              metric="avg_waiting_time"
-              title="Waiting Time Comparison"
-            />
-          </div>
-          <BaselineComparisonChart
-            baselines={baseline}
-            d3qnValue={avgJeepneys}
-            metric="jeepneys_processed"
-            title="Public Vehicle Throughput Comparison"
-          />
-        </div> */}
-
-        {/* Statistical Significance */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Statistical Validation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">P-Value</p>
-                <p className="text-2xl font-bold">
-                  {objectives.p_value.toFixed(4)}
-                  {objectives.p_value < 0.05 && (
-                    <Badge
-                      variant="outline"
-                      className="ml-2 bg-success/10 text-success"
-                    >
-                      Significant
-                    </Badge>
-                  )}
-                </p>
-              </div>
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Effect Size (Cohen's d)
-                </p>
-                <p className="text-2xl font-bold">
-                  {objectives.effect_size.toFixed(2)}
-                </p>
-              </div>
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  95% Confidence Interval
-                </p>
-                <p className="text-lg font-bold">
-                  [{objectives.confidence_interval_lower.toFixed(1)},{" "}
-                  {objectives.confidence_interval_upper.toFixed(1)}]
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
     </div>
   );

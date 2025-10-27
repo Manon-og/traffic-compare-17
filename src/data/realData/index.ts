@@ -107,9 +107,9 @@ const dashboardEpisodes: TrainingEpisode[] = validationData.map(
       pt_passenger_throughput: avgThroughput * 0.85,
 
       memory_size: 50000,
-      timestamp: baselineData.timestamp,
+      timestamp: baselineData.compilation_timestamp,
 
-      // ✅ IMPORTANT: Include vehicle breakdown for hover functionality
+      // ✅ IMPORTANT: empty vehicle breakdown for hover functionality
       vehicle_breakdown,
       passenger_breakdown,
     };
@@ -185,7 +185,7 @@ const fixedTimeEpisodes: TrainingEpisode[] = validationData.map(
       pt_passenger_throughput: baselineThroughput * 0.7, // Lower PT throughput
 
       memory_size: 0,
-      timestamp: baselineData.timestamp,
+      timestamp: baselineData.compilation_timestamp,
 
       vehicle_breakdown: {
         cars,
@@ -248,8 +248,11 @@ console.log("=================================");
 // Transform training results for training progress visualization
 const trainingEpisodes: TrainingEpisode[] = baselineData.training_results.map(
   (result) => {
+    // Use episode_count to split episodes for offline/online phases
+    const episodeCount = baselineData.episode_count || 300;
+    const offlineEpisodeThreshold = Math.floor(episodeCount * 0.4); // First 40% offline
     const phase_type =
-      result.episode <= baselineData.config.offline_episodes
+      result.episode <= offlineEpisodeThreshold
         ? ("offline" as const)
         : ("online" as const);
 
@@ -272,7 +275,7 @@ const trainingEpisodes: TrainingEpisode[] = baselineData.training_results.map(
       // LSTM prediction accuracy improves over training
       prediction_accuracy: Math.min(
         100,
-        Math.max(0, 50 + (result.episode / baselineData.config.episodes) * 40)
+        Math.max(0, 50 + (result.episode / episodeCount) * 40)
       ),
 
       // Raw training metrics
@@ -285,27 +288,63 @@ const trainingEpisodes: TrainingEpisode[] = baselineData.training_results.map(
       completed_trips: result.completed_trips,
       passenger_throughput: result.passenger_throughput,
 
-      // Estimated metrics
-      avg_waiting_time: Math.max(10, 60 - result.passenger_throughput / 150),
-      avg_queue_length: Math.max(
-        1,
-        (result.vehicles - result.completed_trips) / 10
-      ),
-      avg_speed: 25 + (result.completed_trips / result.vehicles) * 10,
+      // Use actual values from baseline data if available
+      avg_waiting_time:
+        result.avg_waiting_time ||
+        Math.max(10, 60 - result.passenger_throughput / 150),
+      avg_queue_length:
+        result.avg_queue_length ||
+        Math.max(1, (result.vehicles - result.completed_trips) / 10),
+      avg_speed:
+        result.avg_speed ||
+        25 + (result.completed_trips / result.vehicles) * 10,
 
-      // PT metrics
-      jeepneys_processed: Math.floor(result.completed_trips * 0.15),
-      buses_processed: Math.floor(result.completed_trips * 0.08),
-      pt_passenger_throughput: result.passenger_throughput * 0.85,
+      // Use actual PT metrics from baseline data
+      jeepneys_processed:
+        result.jeepneys_processed || Math.floor(result.completed_trips * 0.15),
+      buses_processed:
+        result.buses_processed || Math.floor(result.completed_trips * 0.08),
+      pt_passenger_throughput:
+        result.pt_passenger_throughput || result.passenger_throughput * 0.85,
 
       memory_size: result.memory_size,
-      timestamp: baselineData.timestamp,
+      timestamp: baselineData.compilation_timestamp,
 
-      vehicle_breakdown: undefined,
-      passenger_breakdown: undefined,
+      // Use actual vehicle breakdown from baseline data if available
+      vehicle_breakdown:
+        result.cars_processed !== undefined
+          ? {
+              cars: result.cars_processed || 0,
+              motorcycles: result.motorcycles_processed || 0,
+              trucks: result.trucks_processed || 0,
+              tricycles: 0, // Not tracked in baseline
+              jeepneys: result.jeepneys_processed || 0,
+              modern_jeepneys: 0, // Not tracked in baseline
+              buses: result.buses_processed || 0,
+            }
+          : undefined,
+
+      passenger_breakdown:
+        result.cars_processed !== undefined
+          ? {
+              car_passengers: Math.round((result.cars_processed || 0) * 1.3),
+              motorcycle_passengers: Math.round(
+                (result.motorcycles_processed || 0) * 1.4
+              ),
+              truck_passengers: Math.round(
+                (result.trucks_processed || 0) * 1.1
+              ),
+              tricycle_passengers: 0,
+              jeepney_passengers: Math.round(
+                (result.jeepneys_processed || 0) * 14.0
+              ),
+              modern_jeepney_passengers: 0,
+              bus_passengers: Math.round((result.buses_processed || 0) * 35.0),
+            }
+          : undefined,
     };
   }
-);
+) as TrainingEpisode[];
 
 // ============================================
 // VALIDATION RESULTS (from validation.ts for dashboard statistics)
@@ -323,7 +362,7 @@ const validationResults: ValidationResult[] = validationData.map(
       avg_completed_trips: Math.round((d3qnData?.total_vehicles || 0) * 0.85),
       avg_passenger_throughput: d3qnData?.passenger_throughput || 0,
       scenarios_tested: 1,
-      timestamp: baselineData.timestamp,
+      timestamp: baselineData.compilation_timestamp,
     };
   }
 );
@@ -355,7 +394,7 @@ const baselineComparisons: BaselineComparison[] = [
     jeepneys_processed: 25,
     buses_processed: 12,
     num_episodes: dashboardEpisodes.length,
-    timestamp: baselineData.timestamp,
+    timestamp: baselineData.compilation_timestamp,
   },
 ];
 
@@ -367,8 +406,8 @@ export const experimentInfo: ExperimentInfo = {
   experiment_name: "D3QN + LSTM Validation Testing (66 Episodes)",
   status: "completed",
   training_mode: "hybrid",
-  created_at: baselineData.timestamp,
-  completed_at: baselineData.timestamp,
+  created_at: baselineData.compilation_timestamp,
+  completed_at: baselineData.compilation_timestamp,
   total_episodes: dashboardEpisodes.length, // ✅ Use actual validation count (66)
   best_reward: Math.max(...dashboardEpisodes.map((ep) => ep.total_reward)),
   convergence_episode: 50,
@@ -588,7 +627,7 @@ export const objectiveMetrics: ObjectiveMetric = {
     calculateReductionPercent(avgD3QNWaitingTime, avgFixedTimeWaitingTime) - 5,
   confidence_interval_upper:
     calculateReductionPercent(avgD3QNWaitingTime, avgFixedTimeWaitingTime) + 5,
-  calculated_at: baselineData.timestamp,
+  calculated_at: baselineData.compilation_timestamp,
 };
 
 console.log("=== OBJECTIVE METRICS RESULTS ===");

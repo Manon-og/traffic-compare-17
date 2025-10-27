@@ -51,12 +51,12 @@ const items = [
     icon: HelpCircle,
     description: "How to read charts, FAQs",
   },
-  {
-    title: "References",
-    url: "/references",
-    icon: BookOpen,
-    description: "Sources, related works",
-  },
+  // {
+  //   title: "References",
+  //   url: "/references",
+  //   icon: BookOpen,
+  //   description: "Sources, related works",
+  // },
 ];
 
 export function AppSidebar() {
