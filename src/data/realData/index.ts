@@ -12,16 +12,7 @@ import {
 // FOR DASHBOARD (Index.tsx) - Use validation.ts Data
 // ============================================
 
-// ✅ DEBUG: Check actual validation data values
-console.log("=== VALIDATION DATA SAMPLE ===");
-console.log("First 3 validation entries:");
-validationData.slice(0, 3).forEach((v, i) => {
-  console.log(`Episode ${v.episode}:`);
-  console.log(`  D3QN throughput: ${v.d3qn?.passenger_throughput}`);
-  console.log(`  D3QN waiting time: ${v.d3qn?.avg_waiting_time}`);
-  console.log(`  Fixed throughput: ${v.fixed_time?.passenger_throughput}`);
-  console.log(`  Fixed waiting time: ${v.fixed_time?.avg_waiting_time}`);
-});
+//
 
 // Transform validation.ts data to TrainingEpisode format for dashboard charts
 const dashboardEpisodes: TrainingEpisode[] = validationData.map(
@@ -32,7 +23,7 @@ const dashboardEpisodes: TrainingEpisode[] = validationData.map(
 
     // Extract D3QN data (agent performance)
     const d3qnData = validation.d3qn || validation.fixed_time;
-    const avgVehicles = d3qnData?.total_vehicles || 0;
+    const avgVehicles = d3qnData?.vehicles || 0;
 
     // ✅ Both D3QN and Fixed Time passenger_throughput are in same scale (~6k-7k passengers)
     const avgThroughput = d3qnData?.passenger_throughput || 0;
@@ -139,9 +130,9 @@ const fixedTimeEpisodes: TrainingEpisode[] = validationData.map(
       ? fixedTimeData.avg_queue_length
       : (d3qnData?.avg_queue_length || 0) * 1.3;
 
-    const baselineVehicles = fixedTimeData?.total_vehicles
-      ? fixedTimeData.total_vehicles
-      : (d3qnData?.total_vehicles || 0) * 0.88;
+    const baselineVehicles = fixedTimeData?.vehicles
+      ? fixedTimeData.vehicles
+      : (d3qnData?.vehicles || 0) * 0.88;
 
     const intersections = ["Ecoland", "Sandawa", "John Paul"];
     const intersection_id = intersections[index % intersections.length];
@@ -209,37 +200,7 @@ const fixedTimeEpisodes: TrainingEpisode[] = validationData.map(
   }
 );
 
-// ✅ DEBUG: Log sample throughput values to verify scaling
-console.log("=== DATA TRANSFORMATION DEBUG ===");
-console.log("D3QN Episodes (first 3):");
-dashboardEpisodes.slice(0, 3).forEach((ep) => {
-  console.log(
-    `  Episode ${ep.episode_number}: ${ep.passenger_throughput.toFixed(
-      1
-    )} passengers/cycle`
-  );
-});
-console.log("Fixed Time Episodes (first 3):");
-fixedTimeEpisodes.slice(0, 3).forEach((ep) => {
-  console.log(
-    `  Episode ${ep.episode_number}: ${ep.passenger_throughput.toFixed(
-      1
-    )} passengers/cycle`
-  );
-});
-console.log(
-  `Average D3QN: ${(
-    dashboardEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
-    dashboardEpisodes.length
-  ).toFixed(1)}`
-);
-console.log(
-  `Average Fixed Time: ${(
-    fixedTimeEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
-    fixedTimeEpisodes.length
-  ).toFixed(1)}`
-);
-console.log("=================================");
+//
 
 // ============================================
 // FOR TRAINING PAGE (Training.tsx) - Use Training Data
@@ -358,8 +319,8 @@ const validationResults: ValidationResult[] = validationData.map(
       episode_number: validation.episode || index + 1,
       avg_reward: 0, // Not available in validation.ts
       reward_std: 0, // Not available in validation.ts
-      avg_vehicles: Math.round(d3qnData?.total_vehicles || 0),
-      avg_completed_trips: Math.round((d3qnData?.total_vehicles || 0) * 0.85),
+      avg_vehicles: Math.round(d3qnData?.vehicles || 0),
+      avg_completed_trips: Math.round((d3qnData?.vehicles || 0) * 0.85),
       avg_passenger_throughput: d3qnData?.passenger_throughput || 0,
       scenarios_tested: 1,
       timestamp: baselineData.compilation_timestamp,
@@ -469,84 +430,42 @@ function getLatestCyclePerIntersection(
 }
 
 // Split D3QN and Fixed Time episodes, get latest cycle per intersection
-const latestD3QNEpisodes = getLatestCyclePerIntersection(dashboardEpisodes);
+const allD3QNEpisodes = dashboardEpisodes;
 
-const latestFixedTimeEpisodes =
-  getLatestCyclePerIntersection(fixedTimeEpisodes);
+const allFixedTimeEpisodes = fixedTimeEpisodes;
 
-console.log("=== OBJECTIVE METRICS CALCULATION ===");
-console.log("Latest D3QN episodes:", latestD3QNEpisodes.length);
-console.log("Latest Fixed Time episodes:", latestFixedTimeEpisodes.length);
-
-// Debug: Show raw throughput values from latest episodes
-latestD3QNEpisodes.forEach((ep) => {
-  console.log(
-    `  D3QN Episode ${ep.episode_number} (${
-      ep.intersection_id
-    }): ${ep.passenger_throughput.toFixed(1)} passengers`
-  );
-});
-latestFixedTimeEpisodes.forEach((ep) => {
-  console.log(
-    `  Fixed Episode ${ep.episode_number} (${
-      ep.intersection_id
-    }): ${ep.passenger_throughput.toFixed(1)} passengers`
-  );
-});
-
-// Calculate averages from LATEST cycles only
+// Calculate averages from ALL cycles
 const avgD3QNPassengerThroughput =
-  latestD3QNEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
-  latestD3QNEpisodes.length;
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
+  allD3QNEpisodes.length;
 
 const avgD3QNWaitingTime =
-  latestD3QNEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
-  latestD3QNEpisodes.length;
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
+  allD3QNEpisodes.length;
 
 const avgD3QNJeepneys =
-  latestD3QNEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-  latestD3QNEpisodes.length;
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
+  allD3QNEpisodes.length;
 
 const avgD3QNVehicles =
-  latestD3QNEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
-  latestD3QNEpisodes.length;
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
+  allD3QNEpisodes.length;
 
 const avgFixedTimePassengerThroughput =
-  latestFixedTimeEpisodes.reduce(
-    (sum, ep) => sum + ep.passenger_throughput,
-    0
-  ) / latestFixedTimeEpisodes.length;
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.passenger_throughput, 0) /
+  allFixedTimeEpisodes.length;
 
 const avgFixedTimeWaitingTime =
-  latestFixedTimeEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
-  latestFixedTimeEpisodes.length;
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
+  allFixedTimeEpisodes.length;
 
 const avgFixedTimeJeepneys =
-  latestFixedTimeEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-  latestFixedTimeEpisodes.length;
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
+  allFixedTimeEpisodes.length;
 
 const avgFixedTimeVehicles =
-  latestFixedTimeEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
-  latestFixedTimeEpisodes.length;
-
-console.log(
-  "D3QN Avg Passenger Throughput:",
-  avgD3QNPassengerThroughput.toFixed(1)
-);
-console.log(
-  "Fixed Avg Passenger Throughput:",
-  avgFixedTimePassengerThroughput.toFixed(1)
-);
-console.log("D3QN Avg Waiting Time:", avgD3QNWaitingTime.toFixed(2), "seconds");
-console.log(
-  "Fixed Avg Waiting Time:",
-  avgFixedTimeWaitingTime.toFixed(2),
-  "seconds"
-);
-console.log("D3QN Avg Jeepneys:", avgD3QNJeepneys.toFixed(1));
-console.log("Fixed Avg Jeepneys:", avgFixedTimeJeepneys.toFixed(1));
-console.log("D3QN Avg Vehicles:", avgD3QNVehicles.toFixed(1));
-console.log("Fixed Avg Vehicles:", avgFixedTimeVehicles.toFixed(1));
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
+  allFixedTimeEpisodes.length;
 
 // Helper functions for percentage calculations
 function calculateImprovementPercent(
@@ -565,7 +484,7 @@ function calculateReductionPercent(
   return ((baselineValue - d3qnValue) / baselineValue) * 100;
 }
 
-// ✅ Calculate objective metrics from LATEST cycle data
+// ✅ Calculate objective metrics from ALL cycle data
 export const objectiveMetrics: ObjectiveMetric = {
   experiment_id: baselineData.experiment_name,
 
@@ -629,27 +548,6 @@ export const objectiveMetrics: ObjectiveMetric = {
     calculateReductionPercent(avgD3QNWaitingTime, avgFixedTimeWaitingTime) + 5,
   calculated_at: baselineData.compilation_timestamp,
 };
-
-console.log("=== OBJECTIVE METRICS RESULTS ===");
-console.log(
-  "Passenger Throughput Improvement:",
-  objectiveMetrics.passenger_throughput_improvement_pct.toFixed(1) + "%"
-);
-console.log(
-  "Waiting Time Reduction:",
-  objectiveMetrics.waiting_time_reduction_pct.toFixed(1) + "%"
-);
-console.log(
-  "Jeepney Throughput Improvement:",
-  objectiveMetrics.jeepney_throughput_improvement_pct.toFixed(1) + "%"
-);
-console.log(
-  "Overall Vehicle Throughput Improvement:",
-  objectiveMetrics.overall_vehicle_throughput_improvement_pct.toFixed(1) + "%"
-);
-console.log("Objective 1 Achieved:", objectiveMetrics.objective_1_achieved);
-console.log("Objective 2 Achieved:", objectiveMetrics.objective_2_achieved);
-console.log("Objective 3 Achieved:", objectiveMetrics.objective_3_achieved);
 
 // ============================================
 // EXPORT DATASETS FOR EACH PAGE

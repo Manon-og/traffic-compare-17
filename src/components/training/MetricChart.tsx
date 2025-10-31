@@ -97,23 +97,47 @@ export const MetricChart = ({
       const cycleId = payload[0].payload.cycle_id;
 
       if (onCycleHover && filteredEpisodes.length > 0) {
-        // Find the most recent episode for this cycle
-        const episode = filteredEpisodes
-          .filter((ep) => ep.scenario_cycle === cycleId)
-          .sort((a, b) => b.episode_number - a.episode_number)[0];
+        const epsForCycle = filteredEpisodes.filter(
+          (ep) => ep.scenario_cycle === cycleId
+        );
 
-        if (episode) {
-          console.log(
-            "Tooltip found episode:",
-            episode.episode_number,
-            "for cycle:",
-            cycleId,
-            "intersection:",
-            episode.intersection_id
-          );
-          onCycleHover(episode);
+        if (selectedIntersection === "all") {
+          const makeZero = () => ({ cars: 0, motorcycles: 0, trucks: 0, tricycles: 0, jeepneys: 0, modern_jeepneys: 0, buses: 0 });
+          const d3qnSum = makeZero();
+          const fixedSum = makeZero();
+          epsForCycle.forEach((ep) => {
+            const vb: any = ep.vehicle_breakdown || {};
+            const tgt = ep.experiment_id.includes("baseline") ? fixedSum : d3qnSum;
+            tgt.cars += vb.cars || 0;
+            tgt.motorcycles += vb.motorcycles || 0;
+            tgt.trucks += vb.trucks || 0;
+            tgt.tricycles += vb.tricycles || 0;
+            tgt.jeepneys += vb.jeepneys || 0;
+            tgt.modern_jeepneys += vb.modern_jeepneys || 0;
+            tgt.buses += vb.buses || 0;
+          });
+
+          onCycleHover({
+            episode_number: cycleId,
+            intersection_id: "All",
+            vehicle_breakdown: d3qnSum,
+            d3qn_breakdown: d3qnSum,
+            fixed_breakdown: fixedSum,
+          } as unknown as TrainingEpisode);
         } else {
-          console.warn("No episode found for cycle:", cycleId);
+          const forInt = epsForCycle.filter((ep) => ep.intersection_id === selectedIntersection);
+          const d3qn = forInt.find((ep) => !ep.experiment_id.includes("baseline"));
+          const fixed = forInt.find((ep) => ep.experiment_id.includes("baseline"));
+          const makeZero = () => ({ cars: 0, motorcycles: 0, trucks: 0, tricycles: 0, jeepneys: 0, modern_jeepneys: 0, buses: 0 });
+          const d3qnSum: any = d3qn?.vehicle_breakdown || makeZero();
+          const fixedSum: any = fixed?.vehicle_breakdown || makeZero();
+          onCycleHover({
+            episode_number: cycleId,
+            intersection_id: selectedIntersection,
+            vehicle_breakdown: d3qnSum,
+            d3qn_breakdown: d3qnSum,
+            fixed_breakdown: fixedSum,
+          } as unknown as TrainingEpisode);
         }
       }
     } else if (!active && onCycleHover) {
@@ -162,13 +186,13 @@ export const MetricChart = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CardTitle>{title}</CardTitle>
-            <InfoTooltip
+            {/* <InfoTooltip
               content={`Comparison of ${title.toLowerCase()} between Fixed Time and D3QN Multi Agent control systems across traffic cycles. ${
                 selectedIntersection === "all"
                   ? "Data is averaged across all intersections."
                   : `Showing data for ${selectedIntersection} intersection only.`
               } Hover over the chart to see detailed vehicle type breakdown.`}
-            />
+            /> */}
           </div>
           <div className="flex gap-2">
             <Badge
@@ -185,54 +209,52 @@ export const MetricChart = ({
             </Badge>
           </div>
         </div>
-        {selectedIntersection !== "all" && (
+        {/* {selectedIntersection !== "all" && (
           <Badge variant="secondary" className="mt-2">
             📍 {selectedIntersection}
           </Badge>
-        )}
+        )} */}
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-            <XAxis
-              dataKey="cycle_id"
-              label={{
-                value: "Traffic Cycle",
-                position: "insideBottom",
-                offset: -5,
-              }}
-            />
-            <YAxis
-              label={{
-                value: config.label,
-                angle: -90,
-                position: "insideLeft",
-              }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            {runIds.map((runId) => (
-              <Line
-                key={runId}
-                type="monotone"
-                dataKey={runId}
-                stroke={
-                  runId.includes("Fixed Time")
-                    ? "hsl(142 76% 36%)"
-                    : "hsl(var(--primary))"
-                }
-                strokeWidth={2}
-                dot={false}
-                name={
-                  runId.includes("Fixed Time")
-                    ? "Fixed Time"
-                    : "D3QN Multi Agent"
-                }
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="flex items-center">
+          <div className="relative w-0 md:w-8 lg:w-10">
+            <div className="absolute -left-2 md:-left-1 top-1/2 -translate-y-1/2 -rotate-90 text-xs md:text-sm text-muted-foreground whitespace-nowrap pb-10">
+              {config.label}
+            </div>
+          </div>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis dataKey="cycle_id" tickMargin={10} />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                {runIds.map((runId) => (
+                  <Line
+                    key={runId}
+                    type="monotone"
+                    dataKey={runId}
+                    stroke={
+                      runId.includes("Fixed Time")
+                        ? "hsl(142 76% 36%)"
+                        : "hsl(var(--primary))"
+                    }
+                    strokeWidth={2}
+                    dot={false}
+                    name={
+                      runId.includes("Fixed Time")
+                        ? "Fixed Time"
+                        : "D3QN Multi Agent"
+                    }
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="text-center mt-2 text-xs md:text-sm text-muted-foreground">
+          Traffic Cycle
+        </div>
         <div className="mt-3 p-3 bg-muted/30 rounded-md">
           <p className="text-sm text-muted-foreground">
             📊 <strong>Performance Analysis:</strong>{" "}

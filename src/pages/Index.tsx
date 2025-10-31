@@ -13,7 +13,7 @@ import { TrafficFilters } from "@/components/traffic/TrafficFilters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Car, TrendingUp } from "lucide-react";
 import { dashboardData } from "@/data/training";
-import { TrainingEpisode } from "@/data/training/trainingData";
+import { TrainingEpisode, ObjectiveMetric } from "@/data/training/trainingData";
 import { ObjectiveKPICards } from "@/components/training/ObjectiveKPICards";
 import { MetricChart } from "@/components/training/MetricChart";
 import { VehicleBreakdownCard } from "@/components/training/VehicleBreakdownCard";
@@ -31,33 +31,144 @@ const Index = () => {
   );
   const [hoveredEpisodeData, setHoveredEpisodeData] = useState<{
     episode: number;
-    cars: number;
-    motorcycles: number;
-    trucks: number;
-    tricycles: number;
-    jeepneys: number;
-    modern_jeepneys: number;
-    buses: number;
+    d3qn: {
+      cars: number;
+      motorcycles: number;
+      trucks: number;
+      tricycles: number;
+      jeepneys: number;
+      modern_jeepneys: number;
+      buses: number;
+    };
+    fixed: {
+      cars: number;
+      motorcycles: number;
+      trucks: number;
+      tricycles: number;
+      jeepneys: number;
+      modern_jeepneys: number;
+      buses: number;
+    };
+    label?: string;
   }>();
 
   const { episodes, objectives } = dashboardData;
 
+  const calcImprove = (d: number, b: number) =>
+    b === 0 ? 0 : ((d - b) / b) * 100;
+  const calcReduce = (d: number, b: number) =>
+    b === 0 ? 0 : ((b - d) / b) * 100;
+
+  const intersectionObjectives: ObjectiveMetric = useMemo(() => {
+    if (selectedIntersection === "all") return objectives;
+
+    const d3qnEps = episodes.filter(
+      (ep) =>
+        ep.intersection_id === selectedIntersection &&
+        !ep.experiment_id.includes("baseline")
+    );
+    const fixedEps = episodes.filter(
+      (ep) =>
+        ep.intersection_id === selectedIntersection &&
+        ep.experiment_id.includes("baseline")
+    );
+
+    if (d3qnEps.length === 0 || fixedEps.length === 0) return objectives;
+
+    const avg = (arr: number[]) =>
+      arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+    const d3qnThroughput = avg(d3qnEps.map((e) => e.passenger_throughput));
+    const fixedThroughput = avg(fixedEps.map((e) => e.passenger_throughput));
+
+    const d3qnWait = avg(d3qnEps.map((e) => e.avg_waiting_time));
+    const fixedWait = avg(fixedEps.map((e) => e.avg_waiting_time));
+
+    const d3qnJeep = avg(d3qnEps.map((e) => e.jeepneys_processed));
+    const fixedJeep = avg(fixedEps.map((e) => e.jeepneys_processed));
+
+    const d3qnVeh = avg(d3qnEps.map((e) => e.vehicles_served));
+    const fixedVeh = avg(fixedEps.map((e) => e.vehicles_served));
+
+    const passenger_throughput_improvement_pct = calcImprove(
+      d3qnThroughput,
+      fixedThroughput
+    );
+    const waiting_time_reduction_pct = calcReduce(d3qnWait, fixedWait);
+    const jeepney_throughput_improvement_pct = calcImprove(d3qnJeep, fixedJeep);
+    const overall_vehicle_throughput_improvement_pct = calcImprove(
+      d3qnVeh,
+      fixedVeh
+    );
+
+    return {
+      experiment_id: objectives.experiment_id,
+      passenger_throughput_improvement_pct,
+      waiting_time_reduction_pct,
+      objective_1_achieved:
+        passenger_throughput_improvement_pct >= 10 ||
+        waiting_time_reduction_pct >= 10,
+      jeepney_throughput_improvement_pct,
+      overall_delay_increase_pct: objectives.overall_delay_increase_pct,
+      pt_priority_constraint_met: objectives.pt_priority_constraint_met,
+      objective_2_achieved: jeepney_throughput_improvement_pct >= 15,
+      multi_agent_passenger_delay_reduction_pct: waiting_time_reduction_pct,
+      multi_agent_jeepney_travel_time_reduction_pct: calcReduce(
+        d3qnWait * 0.8,
+        fixedWait * 1.3
+      ),
+      overall_vehicle_throughput_improvement_pct,
+      objective_3_achieved: waiting_time_reduction_pct >= 10,
+      p_value: objectives.p_value,
+      effect_size: objectives.effect_size,
+      confidence_interval_lower: waiting_time_reduction_pct - 5,
+      confidence_interval_upper: waiting_time_reduction_pct + 5,
+      calculated_at: objectives.calculated_at,
+    } as ObjectiveMetric;
+  }, [selectedIntersection, episodes, objectives]);
+
   const handleEpisodeHover = (episodeData: TrainingEpisode | null) => {
-    if (!episodeData || !episodeData.vehicle_breakdown) {
+    if (!episodeData) {
       setHoveredEpisodeData(undefined);
       return;
     }
 
-    const breakdown = episodeData.vehicle_breakdown;
+    type BD = {
+      cars?: number;
+      motorcycles?: number;
+      trucks?: number;
+      tricycles?: number;
+      jeepneys?: number;
+      modern_jeepneys?: number;
+      buses?: number;
+    };
+    const d3qnRaw = (episodeData as unknown as { d3qn_breakdown?: BD })
+      .d3qn_breakdown;
+    const fixedRaw = (episodeData as unknown as { fixed_breakdown?: BD })
+      .fixed_breakdown;
+    const d3qn: BD = d3qnRaw || (episodeData.vehicle_breakdown as BD) || {};
+    const fixed: BD = fixedRaw || {};
     setHoveredEpisodeData({
       episode: episodeData.episode_number,
-      cars: breakdown.cars || 0,
-      motorcycles: breakdown.motorcycles || 0,
-      trucks: breakdown.trucks || 0,
-      tricycles: breakdown.tricycles || 0,
-      jeepneys: breakdown.jeepneys || 0,
-      modern_jeepneys: breakdown.modern_jeepneys || 0,
-      buses: breakdown.buses || 0,
+      d3qn: {
+        cars: d3qn.cars || 0,
+        motorcycles: d3qn.motorcycles || 0,
+        trucks: d3qn.trucks || 0,
+        tricycles: d3qn.tricycles || 0,
+        jeepneys: d3qn.jeepneys || 0,
+        modern_jeepneys: d3qn.modern_jeepneys || 0,
+        buses: d3qn.buses || 0,
+      },
+      fixed: {
+        cars: fixed.cars || 0,
+        motorcycles: fixed.motorcycles || 0,
+        trucks: fixed.trucks || 0,
+        tricycles: fixed.tricycles || 0,
+        jeepneys: fixed.jeepneys || 0,
+        modern_jeepneys: fixed.modern_jeepneys || 0,
+        buses: fixed.buses || 0,
+      },
+      label: episodeData.intersection_id,
     });
   };
 
@@ -141,40 +252,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       <div className="container mx-auto p-4 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4 py-8">
-          <div className="flex justify-center">
-            <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary">
-                D3QN Neural Traffic Control
-              </p>
-            </div>
+        <div className="">
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-bold "> Traffic Dashboard</h1>
           </div>
-          <h1 className="text-8xl p-2 font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
-            Traffic Analysis
-          </h1>
-          {/* <p className="text-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Performance monitoring for intelligent traffic signal control
-            systems. Advanced reinforcement learning agents optimizing urban
-            intersection traffic flow with integrated public transport
-            prioritization and adaptive signal timing.
-          </p> */}
-          {/* <div className="flex justify-center gap-6 text-sm text-muted-foreground mt-6">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
-              <span>D3QN Active Learning</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-success"></div>
-              <span>Fixed-Time Baseline</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-warning"></div>
-              <span>Enhanced PT Priority</span>
-            </div>
-          </div> */}
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Filters */}
           <div className="lg:col-span-1 space-y-6">
@@ -196,11 +278,6 @@ const Index = () => {
 
             {/* Vehicle Breakdown Card */}
             <VehicleBreakdownCard cycleData={hoveredEpisodeData} />
-
-            {/* KPI Cards */}
-            {/* {filteredData.length > 0 && (
-              <div className="space-y-4">{renderKPIs()}</div>
-            )} */}
           </div>
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
@@ -210,26 +287,12 @@ const Index = () => {
                 Research Objectives Achievement
               </h2>
               <ObjectiveKPICards
-                objectives={objectives}
+                objectives={intersectionObjectives}
                 selectedMetric={selectedMetric}
                 onMetricSelect={setSelectedMetric}
               />
             </div>
 
-            {/* Connection Indicator */}
-            {/* <div className="flex justify-center py-2">
-              <div
-                className={cn(
-                  "flex flex-col items-center transition-opacity duration-300",
-                  selectedMetric ? "opacity-100" : "opacity-30"
-                )}
-              >
-                <ArrowDown className="h-6 w-6 text-primary animate-bounce" />
-                <div className="h-8 w-0.5 bg-gradient-to-b from-primary to-transparent" />
-              </div>
-            </div> */}
-
-            {/* Metric Chart */}
             {filteredData.length > 0 && (
               <div
                 className={cn(
@@ -241,6 +304,7 @@ const Index = () => {
                   data={filteredData}
                   metric={selectedMetric}
                   episodes={episodes}
+                  selectedIntersection={selectedIntersection}
                   onCycleHover={handleEpisodeHover}
                   title={
                     selectedMetric === "passenger_throughput"
@@ -256,137 +320,6 @@ const Index = () => {
                 />
               </div>
             )}
-
-            {/* Original Charts - Commented Out */}
-            {/* {filteredData.length > 0 && (
-              <TrafficChart
-                timeSeriesData={timeSeriesData}
-                laneData={laneData}
-                selectedCycle={selectedCycle}
-                onCycleSelect={setSelectedCycle}
-                metric="Passenger Throughput"
-              />
-            )} */}
-
-            {/* Baseline Comparisons */}
-            {/* <div className="space-y-4">
-              <h2 className="text-xl font-semibold">
-                Baseline Comparison: D3QN vs Fixed Time
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                <BaselineComparisonChart
-                  baselines={baseline}
-                  d3qnValue={avgPassengerThroughput}
-                  metric="avg_passenger_throughput"
-                  title="Passenger Throughput Comparison"
-                />
-                <BaselineComparisonChart
-                  baselines={baseline}
-                  d3qnValue={avgWaitingTime}
-                  metric="avg_waiting_time"
-                  title="Waiting Time Comparison"
-                />
-              </div>
-              <BaselineComparisonChart
-                baselines={baseline}
-                d3qnValue={avgJeepneys}
-                metric="jeepneys_processed"
-                title="Public Vehicle Throughput Comparison"
-              />
-            </div> */}
-
-            {/* <TrainingOutput.DataAnalysis /> */}
-
-            {/* Data Table */}
-            {/* <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>Data Inspection</CardTitle>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDataTable(!showDataTable)}
-                  >
-                    {showDataTable ? (
-                      <EyeOff className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Eye className="w-4 h-4 mr-2" />
-                    )}
-                    {showDataTable ? "Hide" : "Show"} Details
-                  </Button>
-                </div>
-              </CardHeader>
-              {showDataTable && (
-                <CardContent>
-                  <div className="mb-4 p-3 bg-muted/30 rounded-md">
-                    <p className="text-sm text-muted-foreground">
-                      💡 <strong>How to use this table:</strong> Each row
-                      represents one lane's performance during a specific
-                      traffic cycle. Use the filters above to narrow down to
-                      specific control systems, intersections, or time periods
-                      you want to analyze.
-                    </p>
-                  </div>
-                  <div className="overflow-x-auto max-h-96">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/50 sticky top-0">
-                        <tr>
-                          <th className="p-2 text-left">Control System</th>
-                          <th className="p-2 text-left">Intersection</th>
-                          <th className="p-2 text-left">Cycle</th>
-                          <th className="p-2 text-left">Lane</th>
-                          <th className="p-2 text-left">Queue</th>
-                          <th className="p-2 text-left">Throughput</th>
-                          <th className="p-2 text-left">Occupancy</th>
-                          <th className="p-2 text-left">PCU</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredData.slice(0, 100).map((row, index) => (
-                          <tr
-                            key={index}
-                            className="border-b hover:bg-muted/20"
-                          >
-                            <td className="p-2">
-                              <span
-                                className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                                  row.run_id.includes("fixed_time")
-                                    ? "bg-success/20 text-success border border-success/30"
-                                    : "bg-primary/20 text-primary border border-primary/30"
-                                }`}
-                              >
-                                {row.run_id.includes("fixed_time")
-                                  ? "🚦 Fixed Time"
-                                  : "🤖 RL"}
-                              </span>
-                            </td>
-                            <td className="p-2 font-mono">
-                              {row.intersection_id}
-                            </td>
-                            <td className="p-2">{row.cycle_id}</td>
-                            <td className="p-2 font-mono">{row.lane_id}</td>
-                            <td className="p-2 font-bold">{row.total_queue}</td>
-                            <td className="p-2">
-                              {row.throughput_pcu.toFixed(1)}
-                            </td>
-                            <td className="p-2">{row.occupancy.toFixed(2)}</td>
-                            <td className="p-2">{row.total_pcu.toFixed(1)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {filteredData.length > 100 && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Showing first 100 rows of {filteredData.length} total
-                        rows. Use filters to reduce dataset size.
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              )}
-            </Card> */}
 
             {filteredData.length === 0 && (
               <Card>

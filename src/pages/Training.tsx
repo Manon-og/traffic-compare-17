@@ -63,9 +63,9 @@ const Training = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto space-y-6">
         {/* Header */}
-        <div className="space-y-2">
+        <div className="">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">
               D3QN + LSTM Training Dashboard

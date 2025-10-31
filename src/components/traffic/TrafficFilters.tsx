@@ -65,7 +65,7 @@ export const TrafficFilters = ({
 
   return (
     <Card className="w-full max-w-sm flex flex-col">
-      <CardHeader className="flex-shrink-0 pb-4">
+      {/* <CardHeader className="flex-shrink-0 pb-4">
         <div className="flex items-center gap-2">
           <CardTitle className="text-lg">Traffic Dashboard</CardTitle>
           <InfoTooltip content="Use these filters to focus on specific data subsets. Changes are applied immediately to all charts and tables." />
@@ -73,9 +73,9 @@ export const TrafficFilters = ({
         <p className="text-sm text-muted-foreground">
           Compare fixed-time vs RL traffic performance
         </p>
-      </CardHeader>
+      </CardHeader> */}
 
-      <CardContent className="flex-1 flex flex-col space-y-6 overflow-y-auto pb-6">
+      <CardContent className="flex-1 flex flex-col space-y-6 overflow-y-auto pb-6 pt-7">
         {/* Run Selection */}
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -118,7 +118,7 @@ export const TrafficFilters = ({
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium">Intersection</Label>
-            <InfoTooltip content="Focus analysis on a specific intersection or view aggregated data from all intersections." />
+            {/* <InfoTooltip content="Focus analysis on a specific intersection or view aggregated data from all intersections." /> */}
           </div>
           <Select
             value={selectedIntersection}
