@@ -102,12 +102,22 @@ export const MetricChart = ({
         );
 
         if (selectedIntersection === "all") {
-          const makeZero = () => ({ cars: 0, motorcycles: 0, trucks: 0, tricycles: 0, jeepneys: 0, modern_jeepneys: 0, buses: 0 });
+          const makeZero = () => ({
+            cars: 0,
+            motorcycles: 0,
+            trucks: 0,
+            tricycles: 0,
+            jeepneys: 0,
+            modern_jeepneys: 0,
+            buses: 0,
+          });
           const d3qnSum = makeZero();
           const fixedSum = makeZero();
           epsForCycle.forEach((ep) => {
             const vb: any = ep.vehicle_breakdown || {};
-            const tgt = ep.experiment_id.includes("baseline") ? fixedSum : d3qnSum;
+            const tgt = ep.experiment_id.includes("baseline")
+              ? fixedSum
+              : d3qnSum;
             tgt.cars += vb.cars || 0;
             tgt.motorcycles += vb.motorcycles || 0;
             tgt.trucks += vb.trucks || 0;
@@ -125,10 +135,24 @@ export const MetricChart = ({
             fixed_breakdown: fixedSum,
           } as unknown as TrainingEpisode);
         } else {
-          const forInt = epsForCycle.filter((ep) => ep.intersection_id === selectedIntersection);
-          const d3qn = forInt.find((ep) => !ep.experiment_id.includes("baseline"));
-          const fixed = forInt.find((ep) => ep.experiment_id.includes("baseline"));
-          const makeZero = () => ({ cars: 0, motorcycles: 0, trucks: 0, tricycles: 0, jeepneys: 0, modern_jeepneys: 0, buses: 0 });
+          const forInt = epsForCycle.filter(
+            (ep) => ep.intersection_id === selectedIntersection
+          );
+          const d3qn = forInt.find(
+            (ep) => !ep.experiment_id.includes("baseline")
+          );
+          const fixed = forInt.find((ep) =>
+            ep.experiment_id.includes("baseline")
+          );
+          const makeZero = () => ({
+            cars: 0,
+            motorcycles: 0,
+            trucks: 0,
+            tricycles: 0,
+            jeepneys: 0,
+            modern_jeepneys: 0,
+            buses: 0,
+          });
           const d3qnSum: any = d3qn?.vehicle_breakdown || makeZero();
           const fixedSum: any = fixed?.vehicle_breakdown || makeZero();
           onCycleHover({
@@ -257,7 +281,7 @@ export const MetricChart = ({
         </div>
         <div className="mt-3 p-3 bg-muted/30 rounded-md">
           <p className="text-sm text-muted-foreground">
-            📊 <strong>Performance Analysis:</strong>{" "}
+            <strong>Performance Analysis:</strong>{" "}
             {config.higherBetter ? "Higher" : "Lower"} values indicate better
             performance. D3QN Multi Agent adapts to traffic conditions in
             real-time, while Fixed Time uses pre-programmed signal timing.{" "}
