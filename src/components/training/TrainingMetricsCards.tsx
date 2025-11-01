@@ -22,7 +22,7 @@ export const TrainingMetricsCards = ({
   const metrics = [
     {
       title: "Average Passenger Throughput",
-      value: actualValues.avgPassengerThroughput,
+      value: actualValues.avgPassengerThroughput / 3,
       suffix: " passengers/cycle",
       subtitle: "Passengers served per traffic cycle",
       icon: TrendingUp,

@@ -96,7 +96,7 @@ const Training = () => {
             <div className="grid gap-4 md:grid-cols-4">
               <div>
                 <p className="text-sm text-muted-foreground">D3QN Episodes</p>
-                <p className="text-2xl font-bold">{episodes.length + 50}</p>
+                <p className="text-2xl font-bold">{episodes.length}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">LSTM Episodes</p>

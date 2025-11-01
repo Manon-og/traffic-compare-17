@@ -47,11 +47,16 @@ export const TrainingProgressChart = ({
 
   // Split data into offline and online segments for color transition
   // IMPORTANT: Both segments include the transition point to ensure continuity
-  const offlineData = data.map((d) => ({
-    ...d,
-    offlineValue: d.episode < ONLINE_START_EPISODE ? d.value : null,
-    onlineValue: d.episode >= ONLINE_START_EPISODE ? d.value : null,
-  }));
+  // Divide passenger_throughput by 3 to match the card display
+  const offlineData = data.map((d) => {
+    const adjustedValue =
+      metric === "passenger_throughput" ? (d.value || 0) / 3 : d.value;
+    return {
+      ...d,
+      offlineValue: d.episode < ONLINE_START_EPISODE ? adjustedValue : null,
+      onlineValue: d.episode >= ONLINE_START_EPISODE ? adjustedValue : null,
+    };
+  });
 
   const metricConfig = {
     passenger_throughput: {

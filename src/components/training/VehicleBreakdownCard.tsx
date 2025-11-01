@@ -103,15 +103,15 @@ export const VehicleBreakdownCard = ({
       bgColor: "bg-red-50",
       borderColor: "border-red-200",
     },
-    {
-      label: "Tricycles",
-      dVal: d3qn.tricycles,
-      fVal: fixed.tricycles,
-      icon: Bike,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50",
-      borderColor: "border-cyan-200",
-    },
+    // {
+    //   label: "Tricycles",
+    //   dVal: d3qn.tricycles,
+    //   fVal: fixed.tricycles,
+    //   icon: Bike,
+    //   color: "text-cyan-600",
+    //   bgColor: "bg-cyan-50",
+    //   borderColor: "border-cyan-200",
+    // },
   ] as const;
 
   const totalVehiclesD3QN =
