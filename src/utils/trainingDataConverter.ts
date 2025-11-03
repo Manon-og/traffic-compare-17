@@ -35,7 +35,7 @@ export const convertEpisodesToTrafficData = (
       passenger_throughput: episode.passenger_throughput, // NOT divided by 4!
       passenger_waiting_time: episode.avg_waiting_time,
 
-      // ✅ PUBLIC VEHICLE METRICS - Use actual values
+      // ✅ PUBLIC VEHICLE METRICS - Buses + Jeepneys ONLY (TSP Priority vehicles)
       public_vehicle_count:
         episode.jeepneys_processed + episode.buses_processed,
       public_vehicle_throughput:

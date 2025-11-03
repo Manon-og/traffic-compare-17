@@ -84,8 +84,13 @@ const Index = () => {
     const d3qnWait = avg(d3qnEps.map((e) => e.avg_waiting_time));
     const fixedWait = avg(fixedEps.map((e) => e.avg_waiting_time));
 
-    const d3qnJeep = avg(d3qnEps.map((e) => e.jeepneys_processed));
-    const fixedJeep = avg(fixedEps.map((e) => e.jeepneys_processed));
+    // Public vehicles = buses + jeepneys only
+    const d3qnPublicVehicles = avg(
+      d3qnEps.map((e) => e.jeepneys_processed + e.buses_processed)
+    );
+    const fixedPublicVehicles = avg(
+      fixedEps.map((e) => e.jeepneys_processed + e.buses_processed)
+    );
 
     const d3qnVeh = avg(d3qnEps.map((e) => e.vehicles_served));
     const fixedVeh = avg(fixedEps.map((e) => e.vehicles_served));
@@ -95,7 +100,10 @@ const Index = () => {
       fixedThroughput
     );
     const waiting_time_reduction_pct = calcReduce(d3qnWait, fixedWait);
-    const jeepney_throughput_improvement_pct = calcImprove(d3qnJeep, fixedJeep);
+    const jeepney_throughput_improvement_pct = calcImprove(
+      d3qnPublicVehicles,
+      fixedPublicVehicles
+    );
     const overall_vehicle_throughput_improvement_pct = calcImprove(
       d3qnVeh,
       fixedVeh
@@ -310,7 +318,7 @@ const Index = () => {
                     selectedMetric === "passenger_throughput"
                       ? "Passenger Throughput Over Episodes"
                       : selectedMetric === "public_vehicle_throughput"
-                      ? "Public Vehicle Throughput Over Episodes"
+                      ? "Public Vehicle Throughput Over Episodes (Buses + Jeepneys)"
                       : selectedMetric === "passenger_waiting_time"
                       ? "Passenger Waiting Time Over Episodes"
                       : selectedMetric === "overall_vehicle_throughput"

@@ -31,15 +31,19 @@ const dashboardEpisodes: TrainingEpisode[] = validationData.map(
     const avgWaitingTime = d3qnData?.avg_waiting_time || 0;
     const avgQueueLength = d3qnData?.avg_queue_length || 0;
 
-    // Calculate vehicle breakdown from passenger throughput
+    // ✅ Use ACTUAL vehicle data from validation.ts (not estimates)
+    const jeepneys = d3qnData?.jeepneys_processed || 0;
+    const buses = d3qnData?.buses_processed || 0;
+    const trucks = d3qnData?.trucks_processed || 0;
+    const motorcycles = d3qnData?.motorcycles_processed || 0;
+    const cars = d3qnData?.cars_processed || 0;
+
+    // Estimate remaining vehicle types (not tracked in validation data)
     const totalVehicles = Math.round(avgVehicles);
-    const cars = Math.round(totalVehicles * 0.35);
-    const motorcycles = Math.round(totalVehicles * 0.25);
-    const trucks = Math.round(totalVehicles * 0.05);
-    const tricycles = Math.round(totalVehicles * 0.1);
-    const jeepneys = Math.round(totalVehicles * 0.15);
-    const modern_jeepneys = Math.round(totalVehicles * 0.05);
-    const buses = Math.round(totalVehicles * 0.05);
+    const trackedVehicles = jeepneys + buses + trucks + motorcycles + cars;
+    const remainingVehicles = Math.max(0, totalVehicles - trackedVehicles);
+    const tricycles = Math.round(remainingVehicles * 0.67);
+    const modern_jeepneys = Math.round(remainingVehicles * 0.33);
 
     const vehicle_breakdown = {
       cars,
@@ -92,10 +96,10 @@ const dashboardEpisodes: TrainingEpisode[] = validationData.map(
       avg_queue_length: avgQueueLength,
       avg_speed: 25 + Math.random() * 10,
 
-      // Public transport metrics (estimated)
-      jeepneys_processed: jeepneys + modern_jeepneys,
-      buses_processed: buses,
-      pt_passenger_throughput: avgThroughput * 0.85,
+      // ✅ Public transport metrics (ACTUAL data from validation.ts)
+      jeepneys_processed: jeepneys, // Real jeepney count
+      buses_processed: buses, // Real bus count
+      pt_passenger_throughput: d3qnData?.pt_passenger_throughput || 0,
 
       memory_size: 50000,
       timestamp: baselineData.compilation_timestamp,
@@ -137,15 +141,19 @@ const fixedTimeEpisodes: TrainingEpisode[] = validationData.map(
     const intersections = ["Ecoland", "Sandawa", "John Paul"];
     const intersection_id = intersections[index % intersections.length];
 
-    // Calculate vehicle breakdown for baseline (more cars, less PT)
+    // ✅ Use ACTUAL vehicle data from validation.ts fixed_time (not estimates)
+    const jeepneys = fixedTimeData?.jeepneys_processed || 0;
+    const buses = fixedTimeData?.buses_processed || 0;
+    const trucks = fixedTimeData?.trucks_processed || 0;
+    const motorcycles = fixedTimeData?.motorcycles_processed || 0;
+    const cars = fixedTimeData?.cars_processed || 0;
+
+    // Estimate remaining vehicle types (not tracked in validation data)
     const totalVehicles = Math.round(baselineVehicles);
-    const cars = Math.round(totalVehicles * 0.4); // More cars in baseline
-    const motorcycles = Math.round(totalVehicles * 0.25);
-    const trucks = Math.round(totalVehicles * 0.05);
-    const tricycles = Math.round(totalVehicles * 0.12);
-    const jeepneys = Math.round(totalVehicles * 0.1); // Less PT in baseline
-    const modern_jeepneys = Math.round(totalVehicles * 0.03);
-    const buses = Math.round(totalVehicles * 0.05);
+    const trackedVehicles = jeepneys + buses + trucks + motorcycles + cars;
+    const remainingVehicles = Math.max(0, totalVehicles - trackedVehicles);
+    const tricycles = Math.round(remainingVehicles * 0.75);
+    const modern_jeepneys = Math.round(remainingVehicles * 0.25);
 
     return {
       experiment_id: baselineData.experiment_name + "_baseline",
@@ -171,9 +179,10 @@ const fixedTimeEpisodes: TrainingEpisode[] = validationData.map(
       avg_queue_length: baselineQueue,
       avg_speed: 20 + Math.random() * 5, // Slower
 
-      jeepneys_processed: jeepneys + modern_jeepneys,
-      buses_processed: buses,
-      pt_passenger_throughput: baselineThroughput * 0.7, // Lower PT throughput
+      // ✅ Public transport metrics (ACTUAL data from validation.ts fixed_time)
+      jeepneys_processed: jeepneys, // Real jeepney count from fixed_time
+      buses_processed: buses, // Real bus count from fixed_time
+      pt_passenger_throughput: fixedTimeData?.pt_passenger_throughput || 0,
 
       memory_size: 0,
       timestamp: baselineData.compilation_timestamp,
@@ -443,9 +452,12 @@ const avgD3QNWaitingTime =
   allD3QNEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
   allD3QNEpisodes.length;
 
-const avgD3QNJeepneys =
-  allD3QNEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-  allD3QNEpisodes.length;
+// Public vehicles = buses + jeepneys only
+const avgD3QNPublicVehicles =
+  allD3QNEpisodes.reduce(
+    (sum, ep) => sum + ep.jeepneys_processed + ep.buses_processed,
+    0
+  ) / allD3QNEpisodes.length;
 
 const avgD3QNVehicles =
   allD3QNEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
@@ -459,13 +471,69 @@ const avgFixedTimeWaitingTime =
   allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.avg_waiting_time, 0) /
   allFixedTimeEpisodes.length;
 
-const avgFixedTimeJeepneys =
-  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
-  allFixedTimeEpisodes.length;
+// Public vehicles = buses + jeepneys only
+const avgFixedTimePublicVehicles =
+  allFixedTimeEpisodes.reduce(
+    (sum, ep) => sum + ep.jeepneys_processed + ep.buses_processed,
+    0
+  ) / allFixedTimeEpisodes.length;
 
 const avgFixedTimeVehicles =
   allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.vehicles_served, 0) /
   allFixedTimeEpisodes.length;
+
+// Calculate individual bus and jeepney averages for detailed analysis
+const avgD3QNJeepneys =
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
+  allD3QNEpisodes.length;
+
+const avgD3QNBuses =
+  allD3QNEpisodes.reduce((sum, ep) => sum + ep.buses_processed, 0) /
+  allD3QNEpisodes.length;
+
+const avgFixedTimeJeepneys =
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.jeepneys_processed, 0) /
+  allFixedTimeEpisodes.length;
+
+const avgFixedTimeBuses =
+  allFixedTimeEpisodes.reduce((sum, ep) => sum + ep.buses_processed, 0) /
+  allFixedTimeEpisodes.length;
+
+// Debug: Log public vehicle calculations with detailed breakdown
+console.log("🚍 Public Vehicle Throughput Analysis:");
+console.log("  ─────────────────────────────────────────");
+console.log(`  D3QN Jeepneys: ${avgD3QNJeepneys.toFixed(2)}`);
+console.log(`  D3QN Buses: ${avgD3QNBuses.toFixed(2)}`);
+console.log(
+  `  D3QN Total Public Vehicles: ${avgD3QNPublicVehicles.toFixed(2)}`
+);
+console.log("  ─────────────────────────────────────────");
+console.log(`  Fixed Time Jeepneys: ${avgFixedTimeJeepneys.toFixed(2)}`);
+console.log(`  Fixed Time Buses: ${avgFixedTimeBuses.toFixed(2)}`);
+console.log(
+  `  Fixed Time Total Public Vehicles: ${avgFixedTimePublicVehicles.toFixed(2)}`
+);
+console.log("  ─────────────────────────────────────────");
+console.log(
+  `  📊 Jeepney Improvement: ${(
+    ((avgD3QNJeepneys - avgFixedTimeJeepneys) / avgFixedTimeJeepneys) *
+    100
+  ).toFixed(2)}%`
+);
+console.log(
+  `  📊 Bus Improvement: ${(
+    ((avgD3QNBuses - avgFixedTimeBuses) / avgFixedTimeBuses) *
+    100
+  ).toFixed(2)}%`
+);
+console.log(
+  `  📊 Combined Public Vehicle Improvement: ${(
+    ((avgD3QNPublicVehicles - avgFixedTimePublicVehicles) /
+      avgFixedTimePublicVehicles) *
+    100
+  ).toFixed(2)}%`
+);
+console.log("  ─────────────────────────────────────────");
 
 // Helper functions for percentage calculations
 function calculateImprovementPercent(
@@ -508,16 +576,19 @@ export const objectiveMetrics: ObjectiveMetric = {
     calculateReductionPercent(avgD3QNWaitingTime, avgFixedTimeWaitingTime) >=
       10,
 
-  // Objective 2: Public Vehicle Throughput (Target: +15%)
+  // Objective 2: Public Vehicle Throughput (Buses + Jeepneys, Target: +15%)
   jeepney_throughput_improvement_pct: calculateImprovementPercent(
-    avgD3QNJeepneys,
-    avgFixedTimeJeepneys
+    avgD3QNPublicVehicles,
+    avgFixedTimePublicVehicles
   ),
 
   overall_delay_increase_pct: 3.2, // Acceptable trade-off
   pt_priority_constraint_met: true,
   objective_2_achieved:
-    calculateImprovementPercent(avgD3QNJeepneys, avgFixedTimeJeepneys) >= 15,
+    calculateImprovementPercent(
+      avgD3QNPublicVehicles,
+      avgFixedTimePublicVehicles
+    ) >= 15,
 
   // Objective 3: Multi-agent coordination
   multi_agent_passenger_delay_reduction_pct: calculateReductionPercent(
